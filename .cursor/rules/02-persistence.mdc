@@ -1,0 +1,18 @@
+---
+description: Migraciones, llaves e aislamiento por company_id
+globs: database/**/*.php
+alwaysApply: false
+---
+
+# Persistencia
+
+- Tablas y columnas en inglés, como en las migraciones actuales.
+- Toda tabla de negocio lleva `company_id`, salvo que el ADR diga lo contrario. `users.company_id` es nullable solo para `super_admin`.
+- No cambies `onDelete` de paso: `cascade` en el tenant, `restrict` en sucursal, horario y en `users.company_id`.
+- El índice `(employee_profile_id, work_date, punch_type)` de `attendance_logs` no es único. El duplicado lo rechaza `RegisterPunch`.
+- Un resumen diario es único por `(employee_profile_id, work_date)`.
+- `employee_code` es único por empresa, no global.
+- Filtros de listados: DTO + columnas en lista blanca. Nada de ordenar por un request string crudo.
+- No agregues columnas que no estén en el dominio pedido.
+
+`working_days` es JSON con días en inglés y minúsculas: `["monday","tuesday","wednesday","thursday","friday"]`.

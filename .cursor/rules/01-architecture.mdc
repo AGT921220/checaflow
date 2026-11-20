@@ -1,0 +1,30 @@
+---
+description: Hexagonal por feature en el backend de ChecaFlow
+globs: app/**/*.php
+alwaysApply: false
+---
+
+# Arquitectura
+
+Organiza por feature, no por capa global.
+
+```
+app/Features/Attendance/
+  Domain/        entidades, value objects, DTOs readonly, enums, excepciones, ports
+  Application/   RegisterPunch, CalculateDailyAttendance, GetTodayEmployeeStatus
+```
+
+- `Domain` no conoce el framework.
+- `Application` orquesta y depende de interfaces de `Domain`.
+- Nombre de aplicación: verbo + sustantivo (`CreateEmployee`, `SearchEmployees`, `AssignEmployeeSchedule`).
+- Un método hace una cosa. Si crece una rama de negocio, extrae una clase. No anides `if`.
+- Inyecta Ports en el constructor. No instancies adaptadores dentro del caso.
+- Multi-tenant: el DTO de entrada trae `companyId` y el caso lo valida contra el agregado antes de leer o escribir.
+
+Ejemplo de guardia, sin `else`:
+
+```php
+if ($employee->companyId() !== $command->companyId) {
+    throw new EmployeeDoesNotBelongToCompany();
+}
+```

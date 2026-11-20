@@ -1,0 +1,8 @@
+.git
+vendor
+node_modules
+storage/logs
+docker/nginx/logs
+.env
+.env.*
+!.env.example

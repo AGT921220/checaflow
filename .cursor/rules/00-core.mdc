@@ -1,0 +1,38 @@
+---
+description: Procedimiento y límites de ChecaFlow antes de implementar
+alwaysApply: true
+---
+
+# Core ChecaFlow
+
+El repositorio es la fuente de verdad. El código reciente que cumple estas reglas gana sobre un patrón genérico de Laravel. No copies dominio de otro repo.
+
+## Antes de implementar
+
+1. Identifica el feature: `Auth`, `Companies`, `Branches`, `Schedules`, `Employees`, `Attendance`, `Reports`.
+2. Lee la regla `.cursor/rules` de esa capa o módulo.
+3. Busca una implementación equivalente en este repo.
+4. Cambio mínimo. Sin `else`. Sin capas extra.
+5. Test del caso. Actualiza `AGENTS.md`, la regla y `docs/AI_*` solo si cambió arquitectura, dominio, colas, API o permisos.
+
+## Dónde vive qué
+
+| Qué | Dónde |
+| --- | --- |
+| Dominio | `app/Features/{Feature}/Domain` |
+| Casos de aplicación (verbo + sustantivo) | `app/Features/{Feature}/Application` |
+| HTTP | `app/Http` (aún sin controladores de negocio) |
+| Migraciones | `database/migrations` |
+| Auth de Laravel | `app/Models/User` |
+| Docker local | `docker-compose.yml`, `Dockerfile`, `docker/`, `Makefile` |
+
+## No hacer
+
+- Inventar tablas, columnas o módulos.
+- Sufijo `UseCase`. `else` / `elseif`.
+- Eloquent, Facades o `Illuminate` dentro de `Domain`.
+- Repositorios concretos, controladores o FormRequests mientras no se pidan.
+- `env()` en `app/`. `migrate:fresh` sin petición explícita.
+- Strings libres para ordenar o filtrar. Lista blanca de columnas.
+- Operar sin `company_id`, salvo `super_admin` con `company_id` nulo.
+- Comentarios, clases o columnas en español.
