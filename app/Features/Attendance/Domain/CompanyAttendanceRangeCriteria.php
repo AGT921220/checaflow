@@ -7,16 +7,18 @@ namespace App\Features\Attendance\Domain;
 use App\Features\Attendance\Domain\Exceptions\InvalidAttendanceRange;
 use App\Features\Attendance\Domain\Exceptions\InvalidBranchId;
 use App\Features\Shared\Domain\CompanyId;
-use App\Features\Shared\Domain\Sort;
+use App\Features\Shared\Domain\SearchCriteria;
 use App\Features\Users\Domain\UserRole;
 use DateTimeImmutable;
 
-final readonly class CompanyAttendanceRangeCriteria
+final readonly class CompanyAttendanceRangeCriteria extends SearchCriteria
 {
     public const MAX_DAYS = 92;
 
-    public Sort $sort;
-
+    /**
+     * @param  list<int>|null  $employeeProfileIds
+     * @param  list<string>  $allowedSortColumns
+     */
     public function __construct(
         public UserRole $actorRole,
         public ?CompanyId $actorCompanyId,
@@ -24,8 +26,19 @@ final readonly class CompanyAttendanceRangeCriteria
         public WorkDate $fromDate,
         public WorkDate $toDate,
         public ?int $branchId = null,
+        public ?array $employeeProfileIds = null,
         string $sortColumn = 'work_date',
         string $sortDirection = 'asc',
+        int $page = 1,
+        int $perPage = 15,
+        array $allowedSortColumns = [
+            'work_date',
+            'employee_profile_id',
+            'status',
+            'late_minutes',
+            'worked_minutes',
+        ],
+        int $maxPerPage = 100,
     ) {
         if ($this->branchId !== null && $this->branchId < 1) {
             throw new InvalidBranchId;
@@ -44,12 +57,13 @@ final readonly class CompanyAttendanceRangeCriteria
             throw new InvalidAttendanceRange('El rango no puede superar '.self::MAX_DAYS.' días.');
         }
 
-        $this->sort = new Sort($sortColumn, $sortDirection, [
-            'work_date',
-            'employee_profile_id',
-            'status',
-            'late_minutes',
-            'worked_minutes',
-        ]);
+        parent::__construct(
+            $sortColumn,
+            $sortDirection,
+            $allowedSortColumns,
+            $page,
+            $perPage,
+            $maxPerPage,
+        );
     }
 }

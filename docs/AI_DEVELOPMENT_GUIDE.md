@@ -77,9 +77,9 @@ Ruta: `app/Features/{Feature}/Application/{VerbNoun}.php`. El DTO vive en `Domai
 - Checador: `/punch`.
 - Copia `admin/employees/index` + `resources/js/features/admin/*-list.js`. `super_admin` ve las mismas secciones (lectura; filtro empresa). Detalle en `.cursor/rules/04-admin-ui.mdc`.
 
-## Filtros
+## Filtros y paginación
 
-El criterio de búsqueda es un DTO. `App\Features\Shared\Domain\Sort` recibe la lista blanca del feature (`employee_code`, `name`, `status`, …). Una columna fuera de esa lista lanza `InvalidSortColumn` antes de tocar un repositorio.
+Base: `App\Features\Shared\Domain\SearchCriteria` (sort + `page` + `perPage`). Cada feature tiene su criteria (p. ej. `SearchEmployeesCriteria`). Whitelists en `config/employees.php`, `config/branches.php`, `config/schedules.php`, `config/attendance.php` (`sortable`, `filterable`, `default_sort`, `default_direction`, `default_per_page`, `max_per_page`). HTTP: `SearchListInput::paging()` / `optionalInt|Bool|String()`. Application `Search*::handle` / `GetCompany*::handle` → `PagedResult`. Columna fuera de lista → `InvalidSortColumn`.
 
 ## Multi-tenant
 

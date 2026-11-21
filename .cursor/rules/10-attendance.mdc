@@ -9,8 +9,7 @@ alwaysApply: false
 Referencia: `RegisterPunch`, `CalculateDailyAttendance`, `GetTodayEmployeeStatus`, `GetCompanyDailyReport`, `GetCompanyAttendanceRange`.
 
 - `RegisterPunch` exige `attendance.punch`. El empleado marca el `employeeProfileId` del comando, dentro de su empresa.
-- `GetCompanyDailyReport` exige `attendance.view_company_report` (tablero del día).
-- `GetCompanyAttendanceRange` exige el mismo permiso y agrega resúmenes entre dos `WorkDate` (máx. 92 días) para `/admin/reports`.
+- `GetCompanyDailyReport` / `GetCompanyAttendanceRange` exigen `attendance.view_company_report` y devuelven `PagedResult` vía `CompanyDailyReportCriteria` / `CompanyAttendanceRangeCriteria` (`Shared\SearchCriteria`). Whitelist en `config/attendance.php`.
 - El ciclo es `clock_in` → `lunch_out` → `lunch_in` → `clock_out`. Duplicado: `DuplicatePunch`. Salto: `InvalidPunchSequence`. Día cerrado: `AttendanceDayAlreadyClosed`.
 - La marca usa la sucursal y el horario del empleado. El cliente no elige `branch_id`.
 - App y web toman la hora del `CompanyClock`. Solo `manual_adjustment` trae `punchedAt`.

@@ -20,9 +20,9 @@ use App\Features\Shared\Domain\CompanyId;
 use App\Features\Shared\Domain\Exceptions\CompanyNotFound;
 use App\Features\Users\Domain\UserRole;
 use App\Http\Attendance\AttendanceLabels;
-use App\Http\Auth\RequestPageQuery;
 use App\Http\Auth\TenantCompanyScope;
 use App\Http\Controllers\Controller;
+use App\Http\Search\SearchListInput;
 use App\Models\Company;
 use App\Models\User;
 use DateTimeImmutable;
@@ -40,7 +40,7 @@ final class DailyAttendanceController extends Controller
         $companyId = $scope->optional($request);
         $branches = $companyId === null
             ? []
-            : $searchBranches->handle(new SearchBranchesCriteria($companyId, true));
+            : $this->lookupBranches($searchBranches, $companyId);
 
         return view('admin.attendance.index', [
             'title' => 'Asistencia del día',
@@ -58,7 +58,7 @@ final class DailyAttendanceController extends Controller
         SearchEmployees $searchEmployees,
         CompanyClock $clock,
         TenantCompanyScope $scope,
-        RequestPageQuery $pages,
+        SearchListInput $list,
         AttendanceLabels $labels,
     ): JsonResponse {
         $companyId = $scope->optional($request);
@@ -81,22 +81,37 @@ final class DailyAttendanceController extends Controller
 
         $zone = $this->zone($clock, $companyId);
         $workDate = $this->workDate($request, $clock->now(), $zone);
-        $branchId = $this->branchId($request);
-        $page = $pages->from($request);
-        $result = $searchEmployees->page(new SearchEmployeesCriteria(
+        $branchId = $list->optionalInt('attendance', 'branch_id') ?? $this->branchId($request);
+        $employeePaging = $list->paging('employees');
+        $result = $searchEmployees->handle(new SearchEmployeesCriteria(
             companyId: $companyId,
             branchId: $branchId,
             isActive: true,
-        ), $page);
+            sortColumn: $employeePaging['sortColumn'],
+            sortDirection: $employeePaging['sortDirection'],
+            page: $employeePaging['page'],
+            perPage: $employeePaging['perPage'],
+            allowedSortColumns: $employeePaging['allowedSortColumns'],
+            maxPerPage: $employeePaging['maxPerPage'],
+        ));
         /** @var list<Employee> $employees */
         $employees = $result->items;
+        $employeeIds = array_map(fn (Employee $employee): int => $employee->id(), $employees);
+        $attendanceMax = (int) config('attendance.max_per_page', 2000);
         $summaries = $report->handle(new CompanyDailyReportCriteria(
-            UserRole::from($role),
-            $scope->isPlatform($request) ? null : $companyId,
-            $companyId,
-            $workDate,
-            $branchId,
-        ));
+            actorRole: UserRole::from($role),
+            actorCompanyId: $scope->isPlatform($request) ? null : $companyId,
+            companyId: $companyId,
+            workDate: $workDate,
+            branchId: $branchId,
+            employeeProfileIds: $employeeIds === [] ? [] : $employeeIds,
+            sortColumn: (string) config('attendance.default_sort', 'employee_profile_id'),
+            sortDirection: (string) config('attendance.default_direction', 'asc'),
+            page: 1,
+            perPage: $attendanceMax,
+            allowedSortColumns: array_values(config('attendance.sortable', [])),
+            maxPerPage: $attendanceMax,
+        ))->items;
         $byEmployee = [];
 
         foreach ($summaries as $summary) {
@@ -117,11 +132,28 @@ final class DailyAttendanceController extends Controller
             'filters' => [
                 'branches' => array_map(
                     fn ($branch): array => ['id' => $branch->id(), 'name' => $branch->name()],
-                    $searchBranches->handle(new SearchBranchesCriteria($companyId, true)),
+                    $this->lookupBranches($searchBranches, $companyId),
                 ),
                 'workDate' => $workDate->value,
             ],
         ]);
+    }
+
+    /**
+     * @return list<\App\Features\Branches\Domain\Branch>
+     */
+    private function lookupBranches(SearchBranches $searchBranches, CompanyId $companyId): array
+    {
+        $max = (int) config('branches.max_per_page', 100);
+
+        return $searchBranches->handle(new SearchBranchesCriteria(
+            companyId: $companyId,
+            isActive: true,
+            page: 1,
+            perPage: $max,
+            allowedSortColumns: array_values(config('branches.sortable', ['name', 'is_active'])),
+            maxPerPage: $max,
+        ))->items;
     }
 
     private function workDate(Request $request, DateTimeImmutable $now, DateTimeZone $zone): WorkDate

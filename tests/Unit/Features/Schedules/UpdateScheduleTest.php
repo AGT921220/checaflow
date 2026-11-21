@@ -89,16 +89,10 @@ final class UpdatingSchedules implements ScheduleRepository
         return null;
     }
 
-    public function search(SearchSchedulesCriteria $criteria): array
+    public function search(SearchSchedulesCriteria $criteria): \App\Features\Shared\Domain\PagedResult
     {
-        return $this->saved;
+        return new \App\Features\Shared\Domain\PagedResult($this->saved, count($this->saved), $criteria->page, $criteria->perPage);
     }
 
-    public function paginate(\App\Features\Schedules\Domain\SearchSchedulesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
-    {
-        $items = $this->search($criteria);
-
-        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
-    }
 
 }

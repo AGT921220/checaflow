@@ -14,7 +14,6 @@ use App\Features\Schedules\Domain\TimeOfDay;
 use App\Features\Schedules\Domain\WorkingDays;
 use App\Features\Shared\Domain\CompanyId;
 use App\Features\Shared\Domain\PagedResult;
-use App\Features\Shared\Domain\PageQuery;
 use App\Models\Schedule as ScheduleRecord;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -49,29 +48,18 @@ final class EloquentScheduleRepository implements ScheduleRepository
         return $this->map($record);
     }
 
-    public function search(SearchSchedulesCriteria $criteria): array
-    {
-        return array_values(
-            $this->filtered($criteria)
-                ->orderBy($criteria->sort->column, $criteria->sort->direction)
-                ->get()
-                ->map(fn (ScheduleRecord $record): Schedule => $this->map($record))
-                ->all()
-        );
-    }
-
-    public function paginate(SearchSchedulesCriteria $criteria, PageQuery $page): PagedResult
+    public function search(SearchSchedulesCriteria $criteria): PagedResult
     {
         $query = $this->filtered($criteria)->orderBy($criteria->sort->column, $criteria->sort->direction);
         $total = (clone $query)->count();
         $items = $query
-            ->offset($page->offset())
-            ->limit($page->perPage)
+            ->offset($criteria->offset())
+            ->limit($criteria->perPage)
             ->get()
             ->map(fn (ScheduleRecord $record): Schedule => $this->map($record))
             ->all();
 
-        return new PagedResult(array_values($items), $total, $page->page, $page->perPage);
+        return new PagedResult(array_values($items), $total, $criteria->page, $criteria->perPage);
     }
 
     /**

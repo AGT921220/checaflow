@@ -15,6 +15,6 @@ Referencia: `TodayAttendanceController`, `Admin\DailyAttendanceController`, `Ens
 - La geolocalización del navegador es opcional. Si la sucursal exige geocerca, el dominio rechaza la marca sin punto.
 - Un error de dominio en POST vuelve al formulario con el mensaje. No lo conviertas en un 500.
 - Vistas en Blade + Tailwind, registradas en Vite. Sin `else` en PHP ni en Blade: dos `@if` o un guard.
-- Pantallas del panel: shell en `/{seccion}`, datos con fetch a `/admin/{seccion}` (ver `04-admin-ui`).
+- Pantallas del panel: shell en `/{seccion}`, datos con fetch a `/admin/{seccion}` (ver `04-admin-ui`). Listados: `SearchListInput` + criteria del feature → `PagedResult`.
 - La copia visible al usuario va en español: títulos, botones, tablas, vacíos, ayudas, validación, flashes y errores de dominio que llegan a la pantalla. Clases, rutas, columnas y enums siguen en inglés.
 - El login acepta `nickname` y, si no hay coincidencia, el `email`. El administrador de plataforma entra con nickname `superadmin`.

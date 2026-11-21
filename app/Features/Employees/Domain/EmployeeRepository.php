@@ -6,7 +6,6 @@ namespace App\Features\Employees\Domain;
 
 use App\Features\Shared\Domain\CompanyId;
 use App\Features\Shared\Domain\PagedResult;
-use App\Features\Shared\Domain\PageQuery;
 
 interface EmployeeRepository
 {
@@ -14,12 +13,7 @@ interface EmployeeRepository
 
     public function find(CompanyId $companyId, int $employeeProfileId): ?Employee;
 
-    /**
-     * @return list<Employee>
-     */
-    public function search(SearchEmployeesCriteria $criteria): array;
-
-    public function paginate(SearchEmployeesCriteria $criteria, PageQuery $page): PagedResult;
+    public function search(SearchEmployeesCriteria $criteria): PagedResult;
 
     public function count(CompanyId $companyId): int;
 

@@ -27,6 +27,7 @@ El repositorio es la fuente de verdad. El código reciente que cumple estas regl
 | Migraciones | `database/migrations` |
 | Auth de Laravel | `app/Models/User` |
 | Docker local | `docker-compose.yml`, `Dockerfile`, `docker/`, `Makefile` |
+| Listados | `Shared\SearchCriteria` + criteria del feature; whitelist en `config/{entity}.php`; HTTP `SearchListInput`; `PagedResult` |
 
 ## No hacer
 

@@ -50,13 +50,13 @@ companies
 ```
 checaflow/
 ├── app/
-│   ├── Features/{Users,Branches,Schedules,Employees,Attendance}/{Domain,Application}
+│   ├── Features/{Users,Branches,Schedules,Employees,Attendance,Shared}/{Domain,Application}
 │   ├── Features/{Branches,Schedules,Employees,Attendance}/Infrastructure
-│   ├── Http/{Auth,Attendance,Controllers,Middleware,Requests}
+│   ├── Http/{Auth,Attendance,Controllers,Middleware,Requests,Search}
 │   ├── Models/
 │   └── Providers/AppServiceProvider.php
 ├── bootstrap/
-├── config/
+├── config/          # employees|branches|schedules|attendance.php (sortable/filterable)
 ├── database/
 │   ├── factories/UserFactory.php
 │   ├── migrations/

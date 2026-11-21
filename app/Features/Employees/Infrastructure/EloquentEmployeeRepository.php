@@ -11,7 +11,6 @@ use App\Features\Employees\Domain\Exceptions\EmployeeNotFound;
 use App\Features\Employees\Domain\SearchEmployeesCriteria;
 use App\Features\Shared\Domain\CompanyId;
 use App\Features\Shared\Domain\PagedResult;
-use App\Features\Shared\Domain\PageQuery;
 use App\Models\EmployeeProfile;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -48,29 +47,18 @@ final class EloquentEmployeeRepository implements EmployeeRepository
         return $this->map($record);
     }
 
-    public function search(SearchEmployeesCriteria $criteria): array
-    {
-        return array_values(
-            $this->filtered($criteria)
-                ->orderBy($criteria->sort->column, $criteria->sort->direction)
-                ->get()
-                ->map(fn (EmployeeProfile $record): Employee => $this->map($record))
-                ->all()
-        );
-    }
-
-    public function paginate(SearchEmployeesCriteria $criteria, PageQuery $page): PagedResult
+    public function search(SearchEmployeesCriteria $criteria): PagedResult
     {
         $query = $this->filtered($criteria)->orderBy($criteria->sort->column, $criteria->sort->direction);
         $total = (clone $query)->count();
         $items = $query
-            ->offset($page->offset())
-            ->limit($page->perPage)
+            ->offset($criteria->offset())
+            ->limit($criteria->perPage)
             ->get()
             ->map(fn (EmployeeProfile $record): Employee => $this->map($record))
             ->all();
 
-        return new PagedResult(array_values($items), $total, $page->page, $page->perPage);
+        return new PagedResult(array_values($items), $total, $criteria->page, $criteria->perPage);
     }
 
     /**

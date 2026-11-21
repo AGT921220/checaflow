@@ -13,9 +13,9 @@ use App\Features\Branches\Domain\SearchBranchesCriteria;
 use App\Features\Branches\Domain\UpdateBranchData;
 use App\Features\Shared\Domain\GeoPoint;
 use App\Features\Users\Domain\UserRole;
-use App\Http\Auth\RequestPageQuery;
 use App\Http\Auth\TenantCompanyScope;
 use App\Http\Controllers\Controller;
+use App\Http\Search\SearchListInput;
 use App\Http\Requests\StoreBranchRequest;
 use App\Http\Requests\UpdateBranchRequest;
 use App\Models\Company;
@@ -44,10 +44,20 @@ final class BranchController extends Controller
         Request $request,
         SearchBranches $search,
         TenantCompanyScope $scope,
-        RequestPageQuery $pages,
+        SearchListInput $list,
     ): JsonResponse {
         $companyId = $scope->optional($request);
-        $result = $search->page(new SearchBranchesCriteria($companyId), $pages->from($request));
+        $paging = $list->paging('branches');
+        $result = $search->handle(new SearchBranchesCriteria(
+            companyId: $companyId,
+            isActive: $list->optionalBool('branches', 'is_active'),
+            sortColumn: $paging['sortColumn'],
+            sortDirection: $paging['sortDirection'],
+            page: $paging['page'],
+            perPage: $paging['perPage'],
+            allowedSortColumns: $paging['allowedSortColumns'],
+            maxPerPage: $paging['maxPerPage'],
+        ));
         /** @var list<Branch> $branches */
         $branches = $result->items;
         $companyNames = $this->companyNames($branches);

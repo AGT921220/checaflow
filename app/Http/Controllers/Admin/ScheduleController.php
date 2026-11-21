@@ -12,9 +12,9 @@ use App\Features\Schedules\Domain\Schedule;
 use App\Features\Schedules\Domain\SearchSchedulesCriteria;
 use App\Features\Schedules\Domain\UpdateScheduleData;
 use App\Features\Users\Domain\UserRole;
-use App\Http\Auth\RequestPageQuery;
 use App\Http\Auth\TenantCompanyScope;
 use App\Http\Controllers\Controller;
+use App\Http\Search\SearchListInput;
 use App\Http\Requests\StoreScheduleRequest;
 use App\Http\Requests\UpdateScheduleRequest;
 use App\Models\Company;
@@ -52,10 +52,20 @@ final class ScheduleController extends Controller
         Request $request,
         SearchSchedules $search,
         TenantCompanyScope $scope,
-        RequestPageQuery $pages,
+        SearchListInput $list,
     ): JsonResponse {
         $companyId = $scope->optional($request);
-        $result = $search->page(new SearchSchedulesCriteria($companyId), $pages->from($request));
+        $paging = $list->paging('schedules');
+        $result = $search->handle(new SearchSchedulesCriteria(
+            companyId: $companyId,
+            isActive: $list->optionalBool('schedules', 'is_active'),
+            sortColumn: $paging['sortColumn'],
+            sortDirection: $paging['sortDirection'],
+            page: $paging['page'],
+            perPage: $paging['perPage'],
+            allowedSortColumns: $paging['allowedSortColumns'],
+            maxPerPage: $paging['maxPerPage'],
+        ));
         /** @var list<Schedule> $schedules */
         $schedules = $result->items;
         $companyNames = $this->companyNames($schedules);

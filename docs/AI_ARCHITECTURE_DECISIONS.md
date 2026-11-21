@@ -116,5 +116,12 @@
 
 - Estado: aceptada
 - Contexto: las listas debían paginarse y cargarse con fetch; `super_admin` necesitaba las mismas secciones sin mutar tenants.
-- Decisión: páginas en `/{seccion}`; JSON y mutaciones en `/admin/{seccion}`; checador en `/punch`. `PageQuery`/`PagedResult`. `super_admin` gana `attendance.view_company_report` y ve listados (filtro empresa); mutaciones tenant siguen denegadas.
+- Decisión: páginas en `/{seccion}`; JSON y mutaciones en `/admin/{seccion}`; checador en `/punch`. `SearchCriteria`/`PagedResult`. `super_admin` gana `attendance.view_company_report` y ve listados (filtro empresa); mutaciones tenant siguen denegadas.
 - Consecuencia: Home de `super_admin`/`company_admin`/`hr` es `/attendance`. `/platform` queda para alta de empresas.
+
+## ADR-018 — SearchCriteria compartido con paginación
+
+- Estado: aceptada
+- Contexto: cada listado necesitaba sort tipado, filtros por agregados y paginación (`page`/`per_page`) ante volúmenes grandes.
+- Decisión: base `App\Features\Shared\Domain\SearchCriteria` (sort whitelist + page + perPage). Cada feature extiende con sus filtros (`SearchEmployeesCriteria`, `SearchBranchesCriteria`, `SearchSchedulesCriteria`, `CompanyDailyReportCriteria`, `CompanyAttendanceRangeCriteria`). Campos permitidos viven en `config/{entity}.php` (`sortable`, `filterable`, `default_*`, `max_per_page`). HTTP arma el criteria con `App\Http\Search\SearchListInput`. Los `Search*` / `GetCompany*` devuelven `PagedResult`. Se elimina `PageQuery` / `RequestPageQuery`.
+- Consecuencia: Domain no lee `config()`; la whitelist llega por el criteria. Lookups de selects usan `max_per_page`.

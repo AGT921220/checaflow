@@ -26,4 +26,4 @@ Referencia: `resources/views/admin/employees/index.blade.php` + `resources/js/fe
 ## Backend
 
 - `TenantCompanyScope`: tenant → empresa de sesión; `super_admin` → `company_id` opcional (null = todas en listados CRUD; asistencia/reportes exigen empresa).
-- `PageQuery` / `PagedResult` + `Search*::page`.
+- `SearchCriteria` (Shared) + `SearchListInput` + `PagedResult`. Whitelists en `config/{employees,branches,schedules,attendance}.php`.

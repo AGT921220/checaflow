@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 final class SeedFakeData extends Command
 {
     protected $signature = 'fake:seed
-        {--companies=10 : Number of companies}
+        {--companies=100 : Number of companies}
         {--employees=100 : Employees per company}
         {--branches=4 : Branches per company}
         {--schedules= : Schedules per company (random 10-1000 if omitted)}

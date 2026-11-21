@@ -134,17 +134,11 @@ final class UpdatingBranches implements BranchRepository
         return $total;
     }
 
-    public function search(SearchBranchesCriteria $criteria): array
+    public function search(SearchBranchesCriteria $criteria): \App\Features\Shared\Domain\PagedResult
     {
-        return [];
+        return new \App\Features\Shared\Domain\PagedResult([], 0, $criteria->page, $criteria->perPage);
     }
 
-    public function paginate(\App\Features\Branches\Domain\SearchBranchesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
-    {
-        $items = $this->search($criteria);
-
-        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
-    }
 
 }
 

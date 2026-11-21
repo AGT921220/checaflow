@@ -6,7 +6,6 @@ namespace App\Features\Branches\Domain;
 
 use App\Features\Shared\Domain\CompanyId;
 use App\Features\Shared\Domain\PagedResult;
-use App\Features\Shared\Domain\PageQuery;
 
 interface BranchRepository
 {
@@ -19,10 +18,5 @@ interface BranchRepository
      */
     public function countActiveByCompanyId(CompanyId $companyId): int;
 
-    /**
-     * @return list<Branch>
-     */
-    public function search(SearchBranchesCriteria $criteria): array;
-
-    public function paginate(SearchBranchesCriteria $criteria, PageQuery $page): PagedResult;
+    public function search(SearchBranchesCriteria $criteria): PagedResult;
 }

@@ -20,9 +20,9 @@ use App\Features\Schedules\Domain\SearchSchedulesCriteria;
 use App\Features\Shared\Domain\CompanyId;
 use App\Features\Users\Domain\UserRole;
 use App\Http\Auth\CurrentCompanyId;
-use App\Http\Auth\RequestPageQuery;
 use App\Http\Auth\TenantCompanyScope;
 use App\Http\Controllers\Controller;
+use App\Http\Search\SearchListInput;
 use App\Http\Requests\AssignEmployeeScheduleRequest;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
@@ -50,10 +50,10 @@ final class EmployeeController extends Controller
         $companyId = $isPlatform ? null : $company->from($request);
         $branches = $companyId === null
             ? []
-            : $searchBranches->handle(new SearchBranchesCriteria($companyId, true));
+            : $searchBranches->handle($this->lookupBranches($companyId))->items;
         $schedules = $companyId === null
             ? []
-            : $searchSchedules->handle(new SearchSchedulesCriteria($companyId, true));
+            : $searchSchedules->handle($this->lookupSchedules($companyId))->items;
 
         return view('admin.employees.index', [
             'title' => 'Empleados',
@@ -78,27 +78,30 @@ final class EmployeeController extends Controller
         SearchBranches $searchBranches,
         SearchSchedules $searchSchedules,
         TenantCompanyScope $scope,
-        RequestPageQuery $pages,
+        SearchListInput $list,
     ): JsonResponse {
         $companyId = $scope->optional($request);
-        $page = $pages->from($request);
-        $result = $searchEmployees->page(new SearchEmployeesCriteria(
+        $paging = $list->paging('employees');
+        $result = $searchEmployees->handle(new SearchEmployeesCriteria(
             companyId: $companyId,
-            branchId: $this->optionalInt($request, 'branch_id'),
-            scheduleId: $this->optionalInt($request, 'schedule_id'),
-            isActive: $this->optionalBool($request, 'is_active'),
-        ), $page);
+            branchId: $list->optionalInt('employees', 'branch_id'),
+            scheduleId: $list->optionalInt('employees', 'schedule_id'),
+            isActive: $list->optionalBool('employees', 'is_active'),
+            employeeCode: $list->optionalString('employees', 'employee_code'),
+            sortColumn: $paging['sortColumn'],
+            sortDirection: $paging['sortDirection'],
+            page: $paging['page'],
+            perPage: $paging['perPage'],
+            allowedSortColumns: $paging['allowedSortColumns'],
+            maxPerPage: $paging['maxPerPage'],
+        ));
 
         /** @var list<Employee> $employees */
         $employees = $result->items;
         $accounts = $this->accounts($employees);
         $companyNames = $this->companyNames($employees);
-        $branchNames = $this->namedMap(
-            $searchBranches->handle(new SearchBranchesCriteria($companyId, true))
-        );
-        $scheduleNames = $this->namedMap(
-            $searchSchedules->handle(new SearchSchedulesCriteria($companyId, true))
-        );
+        $branchNames = $this->namedMap($searchBranches->handle($this->lookupBranches($companyId))->items);
+        $scheduleNames = $this->namedMap($searchSchedules->handle($this->lookupSchedules($companyId))->items);
 
         $rows = [];
 
@@ -130,10 +133,38 @@ final class EmployeeController extends Controller
             'data' => $rows,
             'meta' => $result->meta(),
             'filters' => [
-                'branches' => $this->options($searchBranches->handle(new SearchBranchesCriteria($companyId, true))),
-                'schedules' => $this->options($searchSchedules->handle(new SearchSchedulesCriteria($companyId, true))),
+                'branches' => $this->options($searchBranches->handle($this->lookupBranches($companyId))->items),
+                'schedules' => $this->options($searchSchedules->handle($this->lookupSchedules($companyId))->items),
             ],
         ]);
+    }
+
+    private function lookupBranches(?CompanyId $companyId): SearchBranchesCriteria
+    {
+        $max = (int) config('branches.max_per_page', 100);
+
+        return new SearchBranchesCriteria(
+            companyId: $companyId,
+            isActive: true,
+            page: 1,
+            perPage: $max,
+            allowedSortColumns: array_values(config('branches.sortable', ['name', 'is_active'])),
+            maxPerPage: $max,
+        );
+    }
+
+    private function lookupSchedules(?CompanyId $companyId): SearchSchedulesCriteria
+    {
+        $max = (int) config('schedules.max_per_page', 100);
+
+        return new SearchSchedulesCriteria(
+            companyId: $companyId,
+            isActive: true,
+            page: 1,
+            perPage: $max,
+            allowedSortColumns: array_values(config('schedules.sortable', ['name', 'is_active'])),
+            maxPerPage: $max,
+        );
     }
 
     public function store(
@@ -349,27 +380,4 @@ final class EmployeeController extends Controller
         );
     }
 
-    private function optionalInt(Request $request, string $key): ?int
-    {
-        if (! $request->filled($key)) {
-            return null;
-        }
-
-        $value = $request->integer($key);
-
-        if ($value < 1) {
-            return null;
-        }
-
-        return $value;
-    }
-
-    private function optionalBool(Request $request, string $key): ?bool
-    {
-        if (! $request->has($key) || $request->input($key) === '' || $request->input($key) === null) {
-            return null;
-        }
-
-        return $request->boolean($key);
-    }
 }

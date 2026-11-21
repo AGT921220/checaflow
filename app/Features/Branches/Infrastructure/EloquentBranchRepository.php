@@ -12,7 +12,6 @@ use App\Features\Branches\Domain\SearchBranchesCriteria;
 use App\Features\Shared\Domain\CompanyId;
 use App\Features\Shared\Domain\GeoPoint;
 use App\Features\Shared\Domain\PagedResult;
-use App\Features\Shared\Domain\PageQuery;
 use App\Models\Branch as BranchRecord;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -55,29 +54,18 @@ final class EloquentBranchRepository implements BranchRepository
             ->count();
     }
 
-    public function search(SearchBranchesCriteria $criteria): array
-    {
-        return array_values(
-            $this->filtered($criteria)
-                ->orderBy($criteria->sort->column, $criteria->sort->direction)
-                ->get()
-                ->map(fn (BranchRecord $record): Branch => $this->map($record))
-                ->all()
-        );
-    }
-
-    public function paginate(SearchBranchesCriteria $criteria, PageQuery $page): PagedResult
+    public function search(SearchBranchesCriteria $criteria): PagedResult
     {
         $query = $this->filtered($criteria)->orderBy($criteria->sort->column, $criteria->sort->direction);
         $total = (clone $query)->count();
         $items = $query
-            ->offset($page->offset())
-            ->limit($page->perPage)
+            ->offset($criteria->offset())
+            ->limit($criteria->perPage)
             ->get()
             ->map(fn (BranchRecord $record): Branch => $this->map($record))
             ->all();
 
-        return new PagedResult(array_values($items), $total, $page->page, $page->perPage);
+        return new PagedResult(array_values($items), $total, $criteria->page, $criteria->perPage);
     }
 
     /**

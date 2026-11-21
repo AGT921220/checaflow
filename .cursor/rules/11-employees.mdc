@@ -14,5 +14,5 @@ Referencia: `CreateEmployee`, `OpenEmployeeAccount`, `UpdateEmployee`, `SearchEm
 - `UpdateEmployee` edita contacto del `users`, sucursal, horario, código y foto opcional (`employees.manage`).
 - Foto propia: `UpdateOwnProfilePhoto` con `profile.update_own_photo` (`employee`, `company_admin`, `hr`). Columna `users.photo_path`.
 - `employee_code` es único dentro de la empresa. `user_id` solo puede tener un perfil.
-- `SearchEmployeesCriteria` filtra con propiedades tipadas. El orden sale de `Sort` y solo acepta `employee_code`, `position_title`, `hire_date`, `is_active`.
+- `SearchEmployeesCriteria` extiende `Shared\SearchCriteria` (sort + page/perPage). Filtros tipados; whitelist en `config/employees.php`. HTTP: `SearchListInput`.
 - `find` siempre recibe `CompanyId`. No devuelvas un perfil de otra empresa.

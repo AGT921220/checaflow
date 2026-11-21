@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Features\Attendance\Domain;
 
 use App\Features\Shared\Domain\CompanyId;
+use App\Features\Shared\Domain\PagedResult;
 
 interface DailyAttendanceRepository
 {
@@ -12,18 +13,7 @@ interface DailyAttendanceRepository
 
     public function find(CompanyId $companyId, int $employeeProfileId, WorkDate $workDate): ?DailyAttendance;
 
-    /**
-     * Rows for one company and work date. Optional branch filter comes from the criteria.
-     * Sort column is already whitelisted.
-     *
-     * @return list<DailyAttendance>
-     */
-    public function search(CompanyDailyReportCriteria $criteria): array;
+    public function search(CompanyDailyReportCriteria $criteria): PagedResult;
 
-    /**
-     * Rows for one company between two work dates inclusive. Optional branch filter.
-     *
-     * @return list<DailyAttendance>
-     */
-    public function searchRange(CompanyAttendanceRangeCriteria $criteria): array;
+    public function searchRange(CompanyAttendanceRangeCriteria $criteria): PagedResult;
 }

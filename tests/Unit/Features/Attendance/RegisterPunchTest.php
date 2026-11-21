@@ -250,18 +250,12 @@ final class PunchEmployees implements EmployeeRepository
         return $this->employee;
     }
 
-    public function search(SearchEmployeesCriteria $criteria): array
+    public function search(SearchEmployeesCriteria $criteria): \App\Features\Shared\Domain\PagedResult
     {
-        return [];
+        return new \App\Features\Shared\Domain\PagedResult([], 0, $criteria->page, $criteria->perPage);
     }
 
     
-    public function paginate(\App\Features\Employees\Domain\SearchEmployeesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
-    {
-        $items = $this->search($criteria);
-
-        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
-    }
 
     public function count(CompanyId $companyId): int
     {
@@ -302,17 +296,11 @@ final class PunchBranches implements BranchRepository
         return 0;
     }
 
-    public function search(SearchBranchesCriteria $criteria): array
+    public function search(SearchBranchesCriteria $criteria): \App\Features\Shared\Domain\PagedResult
     {
-        return [];
+        return new \App\Features\Shared\Domain\PagedResult([], 0, $criteria->page, $criteria->perPage);
     }
 
-    public function paginate(\App\Features\Branches\Domain\SearchBranchesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
-    {
-        $items = $this->search($criteria);
-
-        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
-    }
 
 }
 
@@ -334,17 +322,11 @@ final class PunchSchedules implements ScheduleRepository
         return $this->schedule;
     }
 
-    public function search(SearchSchedulesCriteria $criteria): array
+    public function search(SearchSchedulesCriteria $criteria): \App\Features\Shared\Domain\PagedResult
     {
-        return [];
+        return new \App\Features\Shared\Domain\PagedResult([], 0, $criteria->page, $criteria->perPage);
     }
 
-    public function paginate(\App\Features\Schedules\Domain\SearchSchedulesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
-    {
-        $items = $this->search($criteria);
-
-        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
-    }
 
 }
 
@@ -398,13 +380,13 @@ final class PunchSummaries implements DailyAttendanceRepository
         return null;
     }
 
-    public function search(CompanyDailyReportCriteria $criteria): array
+    public function search(CompanyDailyReportCriteria $criteria): \App\Features\Shared\Domain\PagedResult
     {
-        return [];
+        return new \App\Features\Shared\Domain\PagedResult([], 0, $criteria->page, $criteria->perPage);
     }
 
-    public function searchRange(\App\Features\Attendance\Domain\CompanyAttendanceRangeCriteria $criteria): array
+    public function searchRange(\App\Features\Attendance\Domain\CompanyAttendanceRangeCriteria $criteria): \App\Features\Shared\Domain\PagedResult
     {
-        return [];
+        return new \App\Features\Shared\Domain\PagedResult([], 0, $criteria->page, $criteria->perPage);
     }
 }

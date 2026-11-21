@@ -11,6 +11,7 @@ use App\Features\Attendance\Domain\DailyAttendance;
 use App\Features\Attendance\Domain\DailyAttendanceRepository;
 use App\Features\Attendance\Domain\WorkDate;
 use App\Features\Shared\Domain\CompanyId;
+use App\Features\Shared\Domain\PagedResult;
 use App\Models\DailyAttendanceSummary;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -54,7 +55,7 @@ final class EloquentDailyAttendanceRepository implements DailyAttendanceReposito
         return $this->map($record);
     }
 
-    public function search(CompanyDailyReportCriteria $criteria): array
+    public function search(CompanyDailyReportCriteria $criteria): PagedResult
     {
         $query = DailyAttendanceSummary::query()
             ->where('company_id', $criteria->companyId->value)
@@ -64,14 +65,23 @@ final class EloquentDailyAttendanceRepository implements DailyAttendanceReposito
             $query->where('branch_id', $criteria->branchId);
         }
 
-        $query->orderBy($criteria->sort->column, $criteria->sort->direction);
+        if ($criteria->employeeProfileIds !== null) {
+            $query->whereIn('employee_profile_id', $criteria->employeeProfileIds);
+        }
 
-        return array_values($query->get()->map(
-            fn (DailyAttendanceSummary $record): DailyAttendance => $this->map($record),
-        )->all());
+        $query->orderBy($criteria->sort->column, $criteria->sort->direction);
+        $total = (clone $query)->count();
+        $items = $query
+            ->offset($criteria->offset())
+            ->limit($criteria->perPage)
+            ->get()
+            ->map(fn (DailyAttendanceSummary $record): DailyAttendance => $this->map($record))
+            ->all();
+
+        return new PagedResult(array_values($items), $total, $criteria->page, $criteria->perPage);
     }
 
-    public function searchRange(CompanyAttendanceRangeCriteria $criteria): array
+    public function searchRange(CompanyAttendanceRangeCriteria $criteria): PagedResult
     {
         $query = DailyAttendanceSummary::query()
             ->where('company_id', $criteria->companyId->value)
@@ -82,11 +92,20 @@ final class EloquentDailyAttendanceRepository implements DailyAttendanceReposito
             $query->where('branch_id', $criteria->branchId);
         }
 
-        $query->orderBy($criteria->sort->column, $criteria->sort->direction);
+        if ($criteria->employeeProfileIds !== null) {
+            $query->whereIn('employee_profile_id', $criteria->employeeProfileIds);
+        }
 
-        return array_values($query->get()->map(
-            fn (DailyAttendanceSummary $record): DailyAttendance => $this->map($record),
-        )->all());
+        $query->orderBy($criteria->sort->column, $criteria->sort->direction);
+        $total = (clone $query)->count();
+        $items = $query
+            ->offset($criteria->offset())
+            ->limit($criteria->perPage)
+            ->get()
+            ->map(fn (DailyAttendanceSummary $record): DailyAttendance => $this->map($record))
+            ->all();
+
+        return new PagedResult(array_values($items), $total, $criteria->page, $criteria->perPage);
     }
 
     private function record(DailyAttendance $summary): DailyAttendanceSummary

@@ -108,18 +108,12 @@ final class UpdatingEmployees implements EmployeeRepository
         return null;
     }
 
-    public function search(SearchEmployeesCriteria $criteria): array
+    public function search(SearchEmployeesCriteria $criteria): \App\Features\Shared\Domain\PagedResult
     {
-        return [];
+        return new \App\Features\Shared\Domain\PagedResult([], 0, $criteria->page, $criteria->perPage);
     }
 
     
-    public function paginate(\App\Features\Employees\Domain\SearchEmployeesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
-    {
-        $items = $this->search($criteria);
-
-        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
-    }
 
     public function count(CompanyId $companyId): int
     {
@@ -206,17 +200,11 @@ final class UpdatingBranches implements BranchRepository
         return 1;
     }
 
-    public function search(SearchBranchesCriteria $criteria): array
+    public function search(SearchBranchesCriteria $criteria): \App\Features\Shared\Domain\PagedResult
     {
-        return [];
+        return new \App\Features\Shared\Domain\PagedResult([], 0, $criteria->page, $criteria->perPage);
     }
 
-    public function paginate(\App\Features\Branches\Domain\SearchBranchesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
-    {
-        $items = $this->search($criteria);
-
-        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
-    }
 
 }
 
@@ -238,17 +226,11 @@ final class UpdatingSchedules implements ScheduleRepository
         return null;
     }
 
-    public function search(SearchSchedulesCriteria $criteria): array
+    public function search(SearchSchedulesCriteria $criteria): \App\Features\Shared\Domain\PagedResult
     {
-        return [];
+        return new \App\Features\Shared\Domain\PagedResult([], 0, $criteria->page, $criteria->perPage);
     }
 
-    public function paginate(\App\Features\Schedules\Domain\SearchSchedulesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
-    {
-        $items = $this->search($criteria);
-
-        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
-    }
 
 }
 

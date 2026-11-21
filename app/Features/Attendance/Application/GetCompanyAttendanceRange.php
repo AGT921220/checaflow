@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Features\Attendance\Application;
 
 use App\Features\Attendance\Domain\CompanyAttendanceRangeCriteria;
-use App\Features\Attendance\Domain\DailyAttendance;
 use App\Features\Attendance\Domain\DailyAttendanceRepository;
 use App\Features\Branches\Domain\BranchRepository;
 use App\Features\Branches\Domain\Exceptions\BranchDoesNotBelongToCompany;
 use App\Features\Branches\Domain\Exceptions\BranchNotFound;
+use App\Features\Shared\Domain\PagedResult;
 use App\Features\Users\Application\AuthorizeActor;
 use App\Features\Users\Domain\PermissionName;
 
@@ -21,10 +21,7 @@ final class GetCompanyAttendanceRange
         private AuthorizeActor $access,
     ) {}
 
-    /**
-     * @return list<DailyAttendance>
-     */
-    public function handle(CompanyAttendanceRangeCriteria $criteria): array
+    public function handle(CompanyAttendanceRangeCriteria $criteria): PagedResult
     {
         $this->access->handle(
             $criteria->actorRole,
