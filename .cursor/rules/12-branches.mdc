@@ -1,0 +1,17 @@
+---
+description: Sucursales y geocerca
+globs: app/Features/Branches/**/*.php
+alwaysApply: false
+---
+
+# Branches
+
+Referencia: `CreateBranch`, `UpdateBranch`, `SearchBranches`, entidad `Branch`.
+
+- `CreateBranch` exige `branches.manage` (`company_admin`). `actorCompanyId` y `companyId` son la misma empresa. Si no, no se guarda.
+- `CreateBranch` exige empresa activa y respeta `Company::maxBranches()` (`null` = ilimitado). `BranchLimitExceeded` si el conteo activo por `company_id` ya alcanzó el tope. El conteo es `BranchRepository::countActiveByCompanyId`.
+- `require_geofence` exige coordenadas y radio de al menos 1 metro.
+- La búsqueda ordena solo por `name` o `is_active`.
+- El radio y el centro los consume `GeofenceCheck` en Attendance. No dupliques el cálculo aquí.
+- La UI de `/admin/branches` usa Google Maps (`GOOGLE_MAPS_API_KEY` / `config('services.google.maps_key')`). Sin key, lat/lng/radio a mano.
+- Pantalla admin: lista + modal como Empleados (`04-admin-ui`). El mapa se monta al abrir el modal.

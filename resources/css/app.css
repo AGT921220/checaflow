@@ -2,8 +2,287 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+    --color-ink: #0d1b2e;
+    --color-ink-soft: #3d5169;
+    --color-paper: #ffffff;
+    --color-paper-deep: #eef3fb;
+    --color-accent: #1767e2;
+    --color-accent-deep: #1254c0;
+    --color-sea: #1767e2;
+    --color-sea-soft: #e3edfb;
+    --color-line: #d5e0f0;
+}
+
+@layer base {
+    :root {
+        color-scheme: light;
+    }
+
+    body {
+        min-height: 100vh;
+        color: var(--color-ink);
+        background:
+            radial-gradient(1100px 480px at 6% -12%, rgba(23, 103, 226, 0.14), transparent 55%),
+            radial-gradient(900px 420px at 100% 0%, rgba(23, 103, 226, 0.08), transparent 48%),
+            linear-gradient(180deg, #f7faff 0%, #ffffff 45%, #f2f6fc 100%);
+        background-attachment: fixed;
+        font-family: var(--font-sans);
+    }
+
+    body::before {
+        content: '';
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        opacity: 0.4;
+        background-image:
+            linear-gradient(rgba(23, 103, 226, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(23, 103, 226, 0.04) 1px, transparent 1px);
+        background-size: 28px 28px;
+        mask-image: linear-gradient(180deg, black, transparent 85%);
+    }
+}
+
+@layer components {
+    .cf-shell {
+        @apply relative mx-auto w-full max-w-6xl px-4 py-6 sm:px-6;
+    }
+
+    .cf-brand {
+        font-family: var(--font-display);
+        @apply inline-flex items-center gap-2 text-2xl font-semibold tracking-tight text-[var(--color-ink)];
+    }
+
+    .cf-brand-mark {
+        @apply h-9 w-auto object-contain sm:h-10;
+    }
+
+    .cf-brand-mark-lg {
+        @apply mx-auto h-16 w-auto object-contain sm:h-20;
+    }
+
+    .cf-nav-link {
+        @apply rounded-lg px-2.5 py-1.5 text-sm font-medium text-[var(--color-ink-soft)] transition;
+    }
+
+    .cf-nav-link:hover {
+        @apply bg-[var(--color-sea-soft)] text-[var(--color-accent)];
+    }
+
+    .cf-nav-link[aria-current='page'] {
+        @apply bg-[var(--color-accent)] text-white;
+    }
+
+    .cf-panel {
+        animation: cf-rise 0.45s ease both;
+        @apply rounded-2xl border border-[var(--color-line)] bg-white p-5 shadow-[0_18px_40px_-28px_rgba(13,27,46,0.35)] sm:p-6;
+    }
+
+    .cf-panel-tight {
+        @apply rounded-2xl border border-[var(--color-line)] bg-white p-4 shadow-[0_12px_28px_-24px_rgba(13,27,46,0.3)];
+    }
+
+    .cf-title {
+        font-family: var(--font-display);
+        @apply text-3xl font-semibold tracking-tight text-[var(--color-ink)];
+    }
+
+    .cf-subtitle {
+        @apply mt-1 text-sm text-[var(--color-ink-soft)];
+    }
+
+    .cf-stat {
+        @apply rounded-xl border border-[var(--color-line)] bg-[var(--color-paper-deep)] px-4 py-3;
+    }
+
+    .cf-stat-label {
+        @apply text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-ink-soft)];
+    }
+
+    .cf-stat-value {
+        font-family: var(--font-display);
+        @apply mt-1 text-3xl font-semibold tabular-nums text-[var(--color-accent)];
+    }
+
+    .cf-field {
+        @apply block text-sm font-medium text-[var(--color-ink)];
+    }
+
+    .cf-input,
+    .cf-select,
+    .cf-textarea {
+        @apply mt-1 w-full rounded-xl border border-[var(--color-line)] bg-white px-3 py-2.5 text-[var(--color-ink)] outline-none transition;
+    }
+
+    .cf-input:focus,
+    .cf-select:focus,
+    .cf-textarea:focus {
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 3px rgba(23, 103, 226, 0.18);
+    }
+
+    .cf-btn {
+        @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition;
+    }
+
+    .cf-btn-primary {
+        background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-deep) 100%);
+        @apply text-white shadow-[0_10px_24px_-12px_rgba(23,103,226,0.85)];
+    }
+
+    .cf-btn-primary:hover {
+        filter: brightness(1.05);
+        transform: translateY(-1px);
+    }
+
+    .cf-btn-dark {
+        @apply bg-[var(--color-ink)] text-white;
+    }
+
+    .cf-btn-ghost {
+        @apply border border-[var(--color-line)] bg-white text-[var(--color-ink)];
+    }
+
+    .cf-btn-ghost:hover {
+        @apply border-[var(--color-accent)] text-[var(--color-accent)];
+    }
+
+    .cf-btn-punch {
+        animation: cf-pulse 2.4s ease-in-out infinite;
+        background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-deep) 100%);
+        @apply w-full rounded-2xl px-4 py-4 text-lg font-semibold text-white shadow-[0_16px_30px_-16px_rgba(23,103,226,0.9)];
+    }
+
+    .cf-list-row {
+        @apply rounded-xl border border-[var(--color-line)] bg-[var(--color-paper-deep)] px-4 py-3;
+    }
+
+    .cf-table {
+        @apply min-w-full text-left text-sm;
+    }
+
+    .cf-table th {
+        @apply border-b border-[var(--color-line)] px-4 py-3 font-semibold text-[var(--color-ink-soft)];
+    }
+
+    .cf-table td {
+        @apply border-b border-[var(--color-line)]/70 px-4 py-3;
+    }
+
+    .cf-alert-error {
+        @apply mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900;
+    }
+
+    .cf-alert-ok {
+        @apply mb-4 rounded-xl border border-[var(--color-line)] bg-[var(--color-sea-soft)] px-4 py-3 text-sm text-[var(--color-accent-deep)];
+    }
+
+    .cf-map {
+        @apply mt-3 h-56 w-full overflow-hidden rounded-xl border border-[var(--color-line)] bg-[var(--color-paper-deep)];
+    }
+
+    .cf-location[data-tone='ok'] {
+        @apply text-[var(--color-accent)];
+    }
+
+    .cf-location[data-tone='warn'] {
+        @apply text-amber-700;
+    }
+
+    .cf-location[data-tone='muted'] {
+        @apply text-[var(--color-ink-soft)];
+    }
+
+    .cf-page-head {
+        @apply mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between;
+    }
+
+    .cf-data-list {
+        @apply divide-y divide-[var(--color-line)] overflow-hidden rounded-2xl border border-[var(--color-line)] bg-white;
+    }
+
+    .cf-data-row {
+        @apply flex flex-col gap-3 px-4 py-4 transition sm:flex-row sm:items-center sm:justify-between sm:gap-4;
+    }
+
+    .cf-data-row:hover {
+        background: var(--color-sea-soft);
+    }
+
+    .cf-avatar {
+        @apply h-11 w-11 shrink-0 rounded-full object-cover;
+    }
+
+    .cf-avatar-fallback {
+        @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-sm font-semibold text-white;
+    }
+
+    .cf-badge {
+        @apply inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold;
+    }
+
+    .cf-badge-ok {
+        @apply bg-[var(--color-sea-soft)] text-[var(--color-accent-deep)];
+    }
+
+    .cf-badge-muted {
+        @apply bg-[var(--color-paper-deep)] text-[var(--color-ink-soft)];
+    }
+
+    .cf-modal[hidden] {
+        display: none !important;
+    }
+
+    .cf-modal {
+        @apply fixed inset-0 z-40 flex items-end justify-center p-0 sm:items-center sm:p-6;
+    }
+
+    .cf-modal-backdrop {
+        @apply absolute inset-0 bg-[rgba(13,27,46,0.48)] backdrop-blur-[2px];
+    }
+
+    .cf-modal-dialog {
+        animation: cf-rise 0.28s ease both;
+        @apply relative z-10 flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden rounded-t-3xl border border-[var(--color-line)] bg-white shadow-[0_28px_60px_-28px_rgba(13,27,46,0.5)] sm:rounded-3xl;
+    }
+
+    .cf-modal-head {
+        @apply flex items-start justify-between gap-3 border-b border-[var(--color-line)] px-5 py-4;
+    }
+
+    .cf-modal-body {
+        @apply overflow-y-auto px-5 py-4;
+    }
+
+    .cf-modal-foot {
+        @apply flex flex-col-reverse gap-2 border-t border-[var(--color-line)] px-5 py-4 sm:flex-row sm:justify-end;
+    }
+}
+
+@keyframes cf-rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes cf-pulse {
+    0%,
+    100% {
+        box-shadow: 0 16px 30px -16px rgba(23, 103, 226, 0.9);
+    }
+
+    50% {
+        box-shadow: 0 18px 36px -10px rgba(23, 103, 226, 0.55);
+    }
 }

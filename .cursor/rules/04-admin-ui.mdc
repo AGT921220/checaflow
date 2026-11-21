@@ -1,0 +1,22 @@
+---
+description: Estructura de pantallas admin (lista + modal)
+globs: resources/views/admin/**/*.blade.php,resources/js/features/ui/**/*.js
+alwaysApply: false
+---
+
+# Admin UI
+
+Referencia canónica: `resources/views/admin/employees/index.blade.php`.
+
+Toda sección admin (`employees`, `branches`, `schedules`, y el shell de `attendance` / `reports`) sigue esta estructura:
+
+1. Contenedor `space-y-5`.
+2. `cf-page-head`: título (`cf-title`) + subtítulo (`cf-subtitle`) a la izquierda; CTA primaria o filtros a la derecha.
+3. Un solo `x-ui.panel` con `overflow-hidden p-0 sm:p-0`.
+4. Vacío centrado (título display + texto + CTA si aplica). Sin layout de dos columnas con formulario lateral.
+5. Lista: cabecera de columnas en `sm:grid` + `ul.divide-y` con filas `cf-data-row` (grid en desktop). Badges `cf-badge-*`. Acción `Editar` con `cf-btn-ghost`.
+6. Alta y edición viven en modales `cf-modal` fuera del panel. Hidden `_form` (`create` / `edit:{id}`). El controller pasa `openModal` = `old('_form')` y `data-modal-auto-open` reabre tras error de validación.
+7. Paleta: `#1767E2` y blanco (`--color-accent`, `--color-paper`). No cream/terracotta/teal.
+8. Mapas de sucursal se montan al abrir el modal (`cf:modal-open`), no mientras el modal está `hidden`.
+
+Asistencia y reportes usan el mismo head + panel; en lugar de filas editables muestran tabla o vacío, y el CTA del head es el formulario de filtros.

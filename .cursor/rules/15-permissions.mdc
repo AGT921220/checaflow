@@ -1,0 +1,18 @@
+---
+description: Catálogo de permisos del MVP y quién puede usarlos
+globs: app/Features/**/*.php
+alwaysApply: false
+---
+
+# Permisos
+
+Referencia: `PermissionName`, `PermissionChecker`, `RolePermissions`, `AuthorizeActor`, `CompanyActor`.
+
+El catálogo vive en `Users`. No hay feature `Access` ni segundo `UserRole`. El port no menciona Spatie ni Eloquent.
+
+- `super_admin` (`company_id` nulo): `companies.manage`, `company_admins.manage`.
+- `company_admin`: `branches.manage`, `schedules.manage`, `users.manage`, `employees.manage`, `attendance.view_company_report`, `attendance.adjust_logs`. Solo su empresa.
+- `hr`: `employees.manage`, `schedules.manage`, `attendance.view_company_report`. Solo su empresa.
+- `employee`: `attendance.punch`, `attendance.view_own_history`. Solo su usuario y su empresa.
+
+`AuthorizeActor` corre al inicio del caso. Sin el permiso lanza `PermissionDenied`. Un permiso de tenant exige la empresa del actor y rechaza el cruce. `super_admin` no usa permisos de tenant. `attendance.adjust_logs` y `attendance.view_own_history` están en el mapa; no hay caso todavía. `CreateCompany` usa `companies.manage`.

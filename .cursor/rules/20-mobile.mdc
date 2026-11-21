@@ -1,0 +1,15 @@
+---
+description: App móvil — domain y application por feature, sin red concreta
+globs: mobile/**/*.ts
+alwaysApply: false
+---
+
+# Mobile
+
+`mobile/src/features/{auth,attendance,history,profile}` tiene `domain/` y `application/`. No hay pantalla ni cliente HTTP.
+
+- Acciones: verbo + sustantivo. `SignIn`, `RegisterPunch`, `GetTodayStatus`, `GetAttendanceHistory`, `GetEmployeeProfile`. Sin sufijo `UseCase`.
+- `RegisterPunch` no manda hora ni sucursal. La hora la pone el servidor. La sucursal es la del empleado.
+- Toda acción de empleado pasa por `RequireSession` y compara `companyId` y `employeeProfileId`.
+- El orden del historial sale de `Sort`. Columnas permitidas: `work_date`, `status`, `late_minutes`, `worked_minutes`.
+- No implementes fetch, AsyncStorage ni geolocalización del dispositivo en estas carpetas. Eso entra detrás de los ports.

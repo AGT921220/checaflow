@@ -33,6 +33,7 @@ También: `make enter`, `make install`, `make clear`, `make up`, `make test`.
 ## Nunca ejecutar sin petición explícita
 
 - `php artisan migrate:fresh`
+- `make restart` (borra la base `checaflow`, la vuelve a crear, migra y corre `initial-setup`)
 - `docker compose down -v` o borrar el volumen `mysql_data`
 
 `.env` de Docker usa MySQL (`DB_HOST=mysql`) y Redis (`REDIS_HOST=redis`, `QUEUE_CONNECTION=redis`). Los tests siguen en SQLite en memoria vía `phpunit.xml`. No copies secretos a docs ni reglas.

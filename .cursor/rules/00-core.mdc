@@ -9,7 +9,7 @@ El repositorio es la fuente de verdad. El código reciente que cumple estas regl
 
 ## Antes de implementar
 
-1. Identifica el feature: `Auth`, `Companies`, `Branches`, `Schedules`, `Employees`, `Attendance`, `Reports`.
+1. Identifica el feature: `Users`, `Branches`, `Schedules`, `Employees`, `Attendance`. `Auth`, `Companies` y `Reports` no son carpetas.
 2. Lee la regla `.cursor/rules` de esa capa o módulo.
 3. Busca una implementación equivalente en este repo.
 4. Cambio mínimo. Sin `else`. Sin capas extra.
@@ -20,8 +20,10 @@ El repositorio es la fuente de verdad. El código reciente que cumple estas regl
 | Qué | Dónde |
 | --- | --- |
 | Dominio | `app/Features/{Feature}/Domain` |
+| Permisos | `Users`: `PermissionName`, port `PermissionChecker`, mapa `RolePermissions`, `AuthorizeActor` |
 | Casos de aplicación (verbo + sustantivo) | `app/Features/{Feature}/Application` |
-| HTTP | `app/Http` (aún sin controladores de negocio) |
+| HTTP | `app/Http` — controllers delgados, FormRequests, `company_id` de la sesión |
+| Adaptadores | `app/Features/{Feature}/Infrastructure` |
 | Migraciones | `database/migrations` |
 | Auth de Laravel | `app/Models/User` |
 | Docker local | `docker-compose.yml`, `Dockerfile`, `docker/`, `Makefile` |
@@ -30,8 +32,8 @@ El repositorio es la fuente de verdad. El código reciente que cumple estas regl
 
 - Inventar tablas, columnas o módulos.
 - Sufijo `UseCase`. `else` / `elseif`.
-- Eloquent, Facades o `Illuminate` dentro de `Domain`.
-- Repositorios concretos, controladores o FormRequests mientras no se pidan.
+- Eloquent, Facades o `Illuminate` dentro de `Domain` o `Application`.
+- Un segundo repositorio concreto para un port que ya tiene adaptador.
 - `env()` en `app/`. `migrate:fresh` sin petición explícita.
 - Strings libres para ordenar o filtrar. Lista blanca de columnas.
 - Operar sin `company_id`, salvo `super_admin` con `company_id` nulo.

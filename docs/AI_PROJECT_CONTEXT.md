@@ -2,16 +2,16 @@
 
 SaaS B2B multi-tenant de control de asistencia. El ciclo diario tiene cuatro marcas: `clock_in`, `lunch_out`, `lunch_in`, `clock_out`. El producto debe poder crecer hacia Recursos Humanos sin mezclar ese dominio dentro de asistencia.
 
-Fase actual: esqueleto Laravel 13 y migraciones. Aún no hay clases de Domain ni Application, ni app móvil.
+Fase actual: migraciones, dominio, adaptadores Eloquent, portal `/platform` (`OpenCompanyAccount` + tablero de planes), checador web móvil y panel de asistencia para `company_admin` / `hr`. La app móvil sigue en TypeScript, sin pantallas ni cliente HTTP.
 
 ## Stack real
 
 - PHP 8.4-FPM en Docker (`php-checa`)
 - Laravel 13.43 (`laravel/laravel` 13.11)
 - MySQL 8.4 (`mysql-checa`), Redis 8, Nginx, Horizon (`laravel/horizon` ^5.52), scheduler y phpMyAdmin
-- Auth de framework: `App\Models\User`
+- Auth de framework: sesión web sobre `App\Models\User`
 - Tests: PHPUnit 12, dentro del contenedor (`make test`). `phpunit.xml` usa SQLite en memoria
-- Node no está instalado. No hay carpeta `mobile/`
+- App móvil en `mobile/`: TypeScript, solo domain y application. Sin pantallas ni cliente HTTP
 
 ## Dominio
 
@@ -19,11 +19,13 @@ Una **company** es el tenant. Tiene **branches** (sucursales, con geocerca opcio
 
 Un **user** entra al sistema. Su `role` es `super_admin`, `company_admin`, `hr` o `employee`. Solo `super_admin` puede tener `company_id` nulo. El CHECK `users_role_company_consistency` lo exige en MySQL, MariaDB y PostgreSQL.
 
+`super_admin` tiene `company_id` nulo y solo `companies.manage` y `company_admins.manage`. `company_admin` administra su empresa: sucursales, horarios, usuarios `hr` o `employee`, empleados y el reporte de asistencia. `hr` administra empleados, horarios y el reporte de su empresa. `employee` solo marca y ve su historial. El catálogo es `PermissionName`. El port es `PermissionChecker`, en `app/Features/Users/Domain`, implementado por `RolePermissions`. `AuthorizeActor` lo usa al inicio del caso. No hay adaptador Spatie.
+
 Un **employee profile** une a un usuario con una sucursal y un horario dentro de una empresa. `employee_code` se repite entre empresas, no dentro de la misma. `user_id` es único: una persona, un perfil.
 
 Un **attendance log** es una marca. Un **daily attendance summary** es el cálculo del día: `late_minutes`, `lunch_minutes`, `excess_lunch_minutes`, `worked_minutes` y `status` (`on_time`, `late`, `incomplete`, `absent`).
 
-MySQL no puede comprobar, con un CHECK, que la sucursal y el horario del perfil sean de la misma empresa. Esa igualdad la va a exigir la capa de aplicación.
+MySQL no puede comprobar, con un CHECK, que la sucursal y el horario del perfil sean de la misma empresa. `CreateEmployee` y `LoadEmployeeShift` lo exigen en aplicación: cargan sucursal y horario con el `CompanyId` y rechazan el cruce.
 
 ## Relaciones
 
@@ -48,8 +50,10 @@ companies
 ```
 checaflow/
 ├── app/
-│   ├── Http/Controllers/Controller.php
-│   ├── Models/User.php
+│   ├── Features/{Users,Branches,Schedules,Employees,Attendance}/{Domain,Application}
+│   ├── Features/{Branches,Schedules,Employees,Attendance}/Infrastructure
+│   ├── Http/{Auth,Attendance,Controllers,Middleware,Requests}
+│   ├── Models/
 │   └── Providers/AppServiceProvider.php
 ├── bootstrap/
 ├── config/
@@ -73,46 +77,32 @@ checaflow/
 └── Makefile
 ```
 
-## Estructura que seguirá el código de negocio
+## Código de negocio
 
-Todavía no está creada. Fase 2 la llena solo con Domain y Application.
+Domain y Application no cambian de forma. La persistencia está en `Infrastructure` (`EloquentBranchRepository`, `EloquentScheduleRepository`, `EloquentEmployeeRepository`, `EloquentAttendanceLogRepository`, `EloquentDailyAttendanceRepository`, `EloquentCompanyClock`). `AppServiceProvider` ata cada port.
 
-```
-app/Features/
-├── Auth/
-│   ├── Domain/
-│   └── Application/
-├── Companies/
-│   ├── Domain/
-│   └── Application/
-├── Branches/
-│   ├── Domain/
-│   └── Application/
-├── Schedules/
-│   ├── Domain/
-│   └── Application/
-├── Employees/
-│   ├── Domain/
-│   └── Application/
-├── Attendance/
-│   ├── Domain/
-│   └── Application/
-└── Reports/
-│   ├── Domain/
-│   └── Application/
-```
+`OpenEmployeeAccount` crea el usuario `employee` y después llama a `CreateEmployee`. El controller envuelve esa pareja en una transacción.
 
-Fase 3, cuando exista la app React Native:
+Pantallas:
+
+- `/attendance` — reloj, estado, botón del siguiente evento, marcas del día e historial de 7 días. Origen `mobile_web`.
+- `/admin/attendance` — métricas del día (presentes, tarde, en comida, incompletos) y la tabla por sucursal y fecha.
+- `/admin/reports` — rango de fechas sobre `daily_attendance_summaries` (`GetCompanyAttendanceRange`).
+- `/admin/branches`, `/admin/schedules`, `/admin/employees` — lista + modal (alta/edición); mapa de geocerca en modal de sucursal.
+
+`Users` persiste empresas, planes y usuarios. El portal de `/platform` usa `OpenCompanyAccount` (empresa + administrador) y muestra el tablero de uso. Los planes son `micro`, `small_business` y `enterprise`. No hay carpetas `Auth`, `Companies` ni `Reports`.
+
+El cliente web tipado vive en `resources/js/features`. No hay pantallas nuevas: la UI sigue en Blade.
+
+La capa móvil ya está, sin proyecto nativo:
 
 ```
 mobile/src/features/
-├── auth/{domain,application}
-├── attendance/{domain,application}
-├── history/{domain,application}
-└── profile/{domain,application}
+├── auth/{domain,application}          SignIn, SignOut, GetCurrentSession, RequireSession
+├── attendance/{domain,application}    RegisterPunch, GetTodayStatus
+├── history/{domain,application}       GetAttendanceHistory
+└── profile/{domain,application}       GetEmployeeProfile
 ```
-
-Las acciones móviles se nombran con verbo, sin `UseCase`: `RegisterPunch`, `GetTodayStatus`, `GetAttendanceHistory`.
 
 ## Glosario
 
@@ -124,11 +114,14 @@ Las acciones móviles se nombran con verbo, sin `UseCase`: `RegisterPunch`, `Get
 | employee profile | Ficha laboral. Une usuario, sucursal y horario. |
 | punch | Una marca del ciclo de cuatro. |
 | daily summary | Totales y estado de un empleado en una fecha. |
-| super_admin | Operador de plataforma, sin `company_id`. |
+| super_admin | Operador de plataforma, sin `company_id`. Permisos `companies.manage` y `company_admins.manage`. |
+| company_admin | Administra su empresa: sucursales, horarios, usuarios, empleados, reporte y ajuste de marcas. |
+| hr | En su empresa: empleados, horarios y reporte. No administra usuarios ni sucursales. |
+| employee | Marca (`attendance.punch`) y ve su historial (`attendance.view_own_history`). |
 
 ## Qué no está
 
-- Controladores, FormRequests y adaptadores Eloquent de negocio
-- Ports implementados
-- `mobile/`
-- Reglas por módulo: se agregan cuando el feature exista en código
+- Carpetas de feature `Auth`, `Companies`, `Reports`
+- Proyecto nativo de React Native (ios/android). La app móvil no tiene cliente HTTP
+- Pantallas nuevas del cliente web tipado (`resources/js/features` solo tiene tipos y servicios)
+- Edición o baja de sucursales, horarios y empleados. El panel crea y asigna horario.

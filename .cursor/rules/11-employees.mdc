@@ -1,0 +1,18 @@
+---
+description: Empleados — alta, búsqueda y asignación de horario
+globs: app/Features/Employees/**/*.php
+alwaysApply: false
+---
+
+# Employees
+
+Referencia: `CreateEmployee`, `OpenEmployeeAccount`, `UpdateEmployee`, `SearchEmployees`, `AssignEmployeeSchedule`.
+
+- El permiso es `employees.manage` (`company_admin` o `hr`) y su `actorCompanyId` es el `companyId` del comando. `super_admin` no contrata ni asigna horario.
+- Alta exige usuario activo de la empresa, sucursal activa, horario activo y cupo `max_employees`.
+- `OpenEmployeeAccount` comprueba ese actor y después llama a `EmployeeAccountRegistrar` con `nickname` obligatorio, `email` y `phone` opcionales.
+- `UpdateEmployee` edita contacto del `users`, sucursal, horario, código y foto opcional (`employees.manage`).
+- Foto propia: `UpdateOwnProfilePhoto` con `profile.update_own_photo` (`employee`, `company_admin`, `hr`). Columna `users.photo_path`.
+- `employee_code` es único dentro de la empresa. `user_id` solo puede tener un perfil.
+- `SearchEmployeesCriteria` filtra con propiedades tipadas. El orden sale de `Sort` y solo acepta `employee_code`, `position_title`, `hire_date`, `is_active`.
+- `find` siempre recibe `CompanyId`. No devuelvas un perfil de otra empresa.

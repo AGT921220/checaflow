@@ -26,7 +26,10 @@ clear:
 
 restart:
 	docker compose down
-	docker compose up -d
+	docker compose up -d --wait
+	docker exec mysql-checa mysql -uroot -proot --execute="DROP DATABASE IF EXISTS checaflow; CREATE DATABASE checaflow CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL PRIVILEGES ON checaflow.* TO 'user'@'%'; FLUSH PRIVILEGES;"
+	docker exec php-checa php artisan migrate --force
+	docker exec php-checa php artisan initial-setup
 
 test:
 	docker exec php-checa php artisan test

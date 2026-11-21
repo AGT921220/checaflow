@@ -1,0 +1,20 @@
+---
+description: Asistencia — ciclo de cuatro marcas, geocerca y resumen diario
+globs: app/Features/Attendance/**/*.php
+alwaysApply: false
+---
+
+# Attendance
+
+Referencia: `RegisterPunch`, `CalculateDailyAttendance`, `GetTodayEmployeeStatus`, `GetCompanyDailyReport`, `GetCompanyAttendanceRange`.
+
+- `RegisterPunch` exige `attendance.punch`. El empleado marca el `employeeProfileId` del comando, dentro de su empresa.
+- `GetCompanyDailyReport` exige `attendance.view_company_report` (tablero del día).
+- `GetCompanyAttendanceRange` exige el mismo permiso y agrega resúmenes entre dos `WorkDate` (máx. 92 días) para `/admin/reports`.
+- El ciclo es `clock_in` → `lunch_out` → `lunch_in` → `clock_out`. Duplicado: `DuplicatePunch`. Salto: `InvalidPunchSequence`. Día cerrado: `AttendanceDayAlreadyClosed`.
+- La marca usa la sucursal y el horario del empleado. El cliente no elige `branch_id`.
+- App y web toman la hora del `CompanyClock`. Solo `manual_adjustment` trae `punchedAt`.
+- El checador del navegador guarda `source = mobile_web`. El panel no registra marcas.
+- Si la sucursal exige geocerca y el punto cae fuera, no se guarda la marca.
+- `status`: sin marcas `absent`; con atraso `late` aunque el día siga abierto; día abierto y a tiempo `incomplete`; ciclo completo y a tiempo `on_time`.
+- Toda lectura y escritura lleva `CompanyId`. Un empleado de otra empresa es `EmployeeNotFound`.

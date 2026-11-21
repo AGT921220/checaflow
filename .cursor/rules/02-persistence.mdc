@@ -14,5 +14,6 @@ alwaysApply: false
 - `employee_code` es único por empresa, no global.
 - Filtros de listados: DTO + columnas en lista blanca. Nada de ordenar por un request string crudo.
 - No agregues columnas que no estén en el dominio pedido.
+- El adaptador Eloquent vive en `app/Features/{Feature}/Infrastructure` y filtra por `company_id` en cada lectura y escritura.
 
 `working_days` es JSON con días en inglés y minúsculas: `["monday","tuesday","wednesday","thursday","friday"]`.

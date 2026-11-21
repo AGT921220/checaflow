@@ -1,0 +1,18 @@
+---
+description: Usuarios de plataforma y quién puede operarlos
+globs: app/Features/Users/**/*.php
+alwaysApply: false
+---
+
+# Users
+
+Referencia: `OpenCompanyAccount`, `CreateCompany`, `CreateCompanyAdmin`, `CreateCompanyUser`, `ActivateCompanyAdmin`, `ToggleUserStatus`.
+
+- `UserRole`: `super_admin`, `company_admin`, `hr`, `employee`. Solo `super_admin` tiene `company_id` nulo.
+- `OpenCompanyAccount` crea la empresa y su `company_admin` en un solo flujo. Nickname obligatorio, correo opcional, teléfono, nombre y apellidos, cupo y `plan_id`.
+- `CreateCompany` exige `companies.manage` y que el cupo de empleados caiga en el rango del plan (`micro` 1–9, `small_business` 10–49, `enterprise` 50+). `maxBranches` default `2`; `null` = ilimitado.
+- `UpdateCompanyLimits` exige `companies.manage`, empresa activa, y que `maxBranches` (si no es `null`) no sea menor al conteo de sucursales activas.
+- `CreateCompanyAdmin` exige `company_admins.manage`, empresa activa, nickname único y correo único si viene.
+- `CreateCompanyUser` lo ejecuta `company_admin` con `users.manage`. El rol destino es `hr` o `employee`.
+- El tablero de `/platform` muestra empresas, empleados activos, marcas y registros por empresa. Solo `super_admin`.
+- Adaptadores: `EloquentCompanyRepository`, `EloquentPlanRepository`, `EloquentUserRepository`.

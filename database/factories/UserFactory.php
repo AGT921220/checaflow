@@ -24,10 +24,17 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $firstName = fake()->firstName();
+        $lastName = fake()->lastName();
+
         return [
             'company_id' => null,
-            'name' => fake()->name(),
+            'name' => $firstName.' '.$lastName,
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'nickname' => fake()->unique()->bothify('user_##??'),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => null,
             'password' => static::$password ??= Hash::make('password'),
             'role' => 'super_admin',
             'is_active' => true,

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Auth\HomeRoute;
+use App\Http\Middleware\EnsureRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,10 +14,36 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'role' => EnsureRole::class,
+        ]);
+        $middleware->redirectGuestsTo('/login');
+        $middleware->redirectUsersTo(function (Request $request) {
+            $user = $request->user();
+
+            if ($user === null) {
+                return '/login';
+            }
+
+            return route(app(HomeRoute::class)->nameFor((string) $user->role));
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->render(function (DomainException $exception, Request $request) {
+            if (! $request->isMethod('POST')) {
+                return null;
+            }
+
+            $message = $exception->getMessage();
+
+            if ($message === '') {
+                $message = 'No se pudo completar la acción.';
+            }
+
+            return back()->withInput()->withErrors(['action' => $message]);
+        });
     })->create();

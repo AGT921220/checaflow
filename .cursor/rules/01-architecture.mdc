@@ -24,7 +24,7 @@ app/Features/Attendance/
 Ejemplo de guardia, sin `else`:
 
 ```php
-if ($employee->companyId() !== $command->companyId) {
+if (! $employee->belongsTo($command->companyId)) {
     throw new EmployeeDoesNotBelongToCompany();
 }
 ```

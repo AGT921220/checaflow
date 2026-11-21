@@ -1,0 +1,17 @@
+---
+description: Horarios de jornada
+globs: app/Features/Schedules/**/*.php
+alwaysApply: false
+---
+
+# Schedules
+
+Referencia: `CreateSchedule`, `UpdateSchedule`, `SearchSchedules`, entidad `Schedule`.
+
+- `CreateSchedule` y `UpdateSchedule` exigen `schedules.manage` (`company_admin` o `hr`). `actorCompanyId` y `companyId` son la misma empresa. Si no, no se guarda.
+- La edición HTTP es `PUT /admin/schedules/{schedule}` vía `Schedule::revise`.
+- `clock_out` va después de `clock_in` el mismo día. No hay turno nocturno.
+- `working_days` son weekdays en inglés y minúsculas: `monday` … `sunday`. Sin duplicados.
+- La búsqueda ordena solo por `name` o `is_active`.
+- Asignar un horario inactivo lo rechaza `AssignEmployeeSchedule`.
+- UI admin: lista + modal como Empleados (`04-admin-ui`).
