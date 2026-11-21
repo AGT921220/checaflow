@@ -19,6 +19,14 @@ make test
 
 Artisan y Composer van dentro de `php-checa`. `make enter` abre bash ahí. `make clear` limpia cachés y reinicia Horizon y la cola. `make down` apaga los contenedores. `make restart` los vuelve a crear, borra la base `checaflow`, la crea de nuevo, corre las migraciones y `php artisan initial-setup`. Ese comando (no un seeder) crea al administrador de plataforma.
 
+Datos masivos de prueba (no borra nada):
+
+```bash
+docker exec php-checa php artisan fake:seed --companies=20 --employees=200 --branches=5 --schedules=3 --days=30
+```
+
+Si omites `--schedules`, el comando elige un número al azar entre 10 y 1000 horarios por empresa. Contraseña de las cuentas fake: `password`. Imprime nicknames `…-admin`, `…-hr`, `…-e1`.
+
 Puertos del host: HTTP `8098`, phpMyAdmin `8097`, MySQL `4336`, Redis `6386`. Staging usa `docker-compose-staging.yaml` y no incluye MySQL ni phpMyAdmin.
 
 ## Migración nueva

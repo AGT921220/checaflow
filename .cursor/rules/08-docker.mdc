@@ -30,6 +30,8 @@ docker exec php-checa php artisan ...
 
 También: `make enter`, `make install`, `make clear`, `make up`, `make test`.
 
+Datos fake masivos (no borra): `docker exec php-checa php artisan fake:seed --companies=20 --employees=200 --days=30`.
+
 ## Nunca ejecutar sin petición explícita
 
 - `php artisan migrate:fresh`
