@@ -101,4 +101,12 @@ final class MemoryScheduleRepository implements ScheduleRepository
     {
         return [];
     }
+
+    public function paginate(\App\Features\Schedules\Domain\SearchSchedulesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
+    {
+        $items = $this->search($criteria);
+
+        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
+    }
+
 }

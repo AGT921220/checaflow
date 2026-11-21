@@ -15,7 +15,7 @@ final readonly class CompanyDailyReportCriteria
 
     public function __construct(
         public UserRole $actorRole,
-        public CompanyId $actorCompanyId,
+        public ?CompanyId $actorCompanyId,
         public CompanyId $companyId,
         public WorkDate $workDate,
         public ?int $branchId = null,

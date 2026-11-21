@@ -113,6 +113,14 @@ final class UpdatingEmployees implements EmployeeRepository
         return [];
     }
 
+    
+    public function paginate(\App\Features\Employees\Domain\SearchEmployeesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
+    {
+        $items = $this->search($criteria);
+
+        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
+    }
+
     public function count(CompanyId $companyId): int
     {
         return count($this->saved);
@@ -202,6 +210,14 @@ final class UpdatingBranches implements BranchRepository
     {
         return [];
     }
+
+    public function paginate(\App\Features\Branches\Domain\SearchBranchesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
+    {
+        $items = $this->search($criteria);
+
+        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
+    }
+
 }
 
 final class UpdatingSchedules implements ScheduleRepository
@@ -226,6 +242,14 @@ final class UpdatingSchedules implements ScheduleRepository
     {
         return [];
     }
+
+    public function paginate(\App\Features\Schedules\Domain\SearchSchedulesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
+    {
+        $items = $this->search($criteria);
+
+        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
+    }
+
 }
 
 final class MemoryPhotos implements ProfilePhotoStore

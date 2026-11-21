@@ -18,7 +18,7 @@ export function registerPunch(input: RegisterPunchInput): Promise<Response> {
 
     return send({
         method: 'POST',
-        path: '/attendance/punches',
+        path: '/punch/punches',
         body,
     });
 }

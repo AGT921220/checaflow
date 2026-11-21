@@ -20,12 +20,16 @@ use App\Features\Schedules\Domain\SearchSchedulesCriteria;
 use App\Features\Shared\Domain\CompanyId;
 use App\Features\Users\Domain\UserRole;
 use App\Http\Auth\CurrentCompanyId;
+use App\Http\Auth\RequestPageQuery;
+use App\Http\Auth\TenantCompanyScope;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AssignEmployeeScheduleRequest;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
+use App\Models\Company;
 use App\Models\User;
 use DateTimeImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -35,45 +39,116 @@ use Illuminate\View\View;
 
 final class EmployeeController extends Controller
 {
+    public function page(
+        Request $request,
+        SearchBranches $searchBranches,
+        SearchSchedules $searchSchedules,
+        TenantCompanyScope $scope,
+        CurrentCompanyId $company,
+    ): View {
+        $isPlatform = $scope->isPlatform($request);
+        $companyId = $isPlatform ? null : $company->from($request);
+        $branches = $companyId === null
+            ? []
+            : $searchBranches->handle(new SearchBranchesCriteria($companyId, true));
+        $schedules = $companyId === null
+            ? []
+            : $searchSchedules->handle(new SearchSchedulesCriteria($companyId, true));
+
+        return view('admin.employees.index', [
+            'title' => 'Empleados',
+            'isPlatform' => $isPlatform,
+            'canManage' => ! $isPlatform,
+            'openModal' => old('_form'),
+            'companies' => $isPlatform ? $this->companies() : [],
+            'branches' => $branches,
+            'schedules' => $schedules,
+            'bootstrap' => [
+                'listUrl' => route('admin.employees.index'),
+                'isPlatform' => $isPlatform,
+                'canManage' => ! $isPlatform,
+                'companies' => $isPlatform ? $this->companies() : [],
+            ],
+        ]);
+    }
+
     public function index(
         Request $request,
         SearchEmployees $searchEmployees,
         SearchBranches $searchBranches,
         SearchSchedules $searchSchedules,
-        CurrentCompanyId $company,
-    ): View {
-        $companyId = $company->from($request);
-        $employees = $searchEmployees->handle(new SearchEmployeesCriteria($companyId));
+        TenantCompanyScope $scope,
+        RequestPageQuery $pages,
+    ): JsonResponse {
+        $companyId = $scope->optional($request);
+        $page = $pages->from($request);
+        $result = $searchEmployees->page(new SearchEmployeesCriteria(
+            companyId: $companyId,
+            branchId: $this->optionalInt($request, 'branch_id'),
+            scheduleId: $this->optionalInt($request, 'schedule_id'),
+            isActive: $this->optionalBool($request, 'is_active'),
+        ), $page);
 
-        $branches = $searchBranches->handle(new SearchBranchesCriteria($companyId, true));
-        $schedules = $searchSchedules->handle(new SearchSchedulesCriteria($companyId, true));
+        /** @var list<Employee> $employees */
+        $employees = $result->items;
+        $accounts = $this->accounts($employees);
+        $companyNames = $this->companyNames($employees);
+        $branchNames = $this->namedMap(
+            $searchBranches->handle(new SearchBranchesCriteria($companyId, true))
+        );
+        $scheduleNames = $this->namedMap(
+            $searchSchedules->handle(new SearchSchedulesCriteria($companyId, true))
+        );
 
-        return view('admin.employees.index', [
-            'title' => 'Empleados',
-            'employees' => $employees,
-            'accounts' => $this->accounts($companyId, $employees),
-            'branches' => $branches,
-            'schedules' => $schedules,
-            'branchNames' => $this->namedMap($branches),
-            'scheduleNames' => $this->namedMap($schedules),
-            'photoUrl' => fn (?string $path): ?string => $this->photoUrl($path),
-            'openModal' => old('_form'),
+        $rows = [];
+
+        foreach ($employees as $employee) {
+            $account = $accounts[$employee->userId()] ?? null;
+            $rows[] = [
+                'id' => $employee->id(),
+                'companyId' => $employee->companyId()->value,
+                'companyName' => $companyNames[$employee->companyId()->value] ?? '—',
+                'userId' => $employee->userId(),
+                'name' => $account['name'] ?? $employee->employeeCode(),
+                'nickname' => $account['nickname'] ?? '—',
+                'email' => $account['email'] ?? null,
+                'phone' => $account['phone'] ?? null,
+                'photoUrl' => $this->photoUrl($account['photoPath'] ?? null),
+                'employeeCode' => $employee->employeeCode(),
+                'positionTitle' => $employee->positionTitle(),
+                'hireDate' => $employee->hireDate()?->format('Y-m-d'),
+                'branchId' => $employee->branchId(),
+                'branchName' => $branchNames[$employee->branchId()] ?? '—',
+                'scheduleId' => $employee->scheduleId(),
+                'scheduleName' => $scheduleNames[$employee->scheduleId()] ?? '—',
+                'isActive' => $employee->isActive(),
+                'updateUrl' => route('admin.employees.update', $employee->id()),
+            ];
+        }
+
+        return response()->json([
+            'data' => $rows,
+            'meta' => $result->meta(),
+            'filters' => [
+                'branches' => $this->options($searchBranches->handle(new SearchBranchesCriteria($companyId, true))),
+                'schedules' => $this->options($searchSchedules->handle(new SearchSchedulesCriteria($companyId, true))),
+            ],
         ]);
     }
 
     public function store(
         StoreEmployeeRequest $request,
         OpenEmployeeAccount $openAccount,
-        CurrentCompanyId $company,
+        TenantCompanyScope $scope,
     ): RedirectResponse {
+        $companyId = $scope->forMutation($request);
         $hireDate = null;
 
         if ($request->filled('hire_date')) {
             $hireDate = new DateTimeImmutable($request->string('hire_date')->toString());
         }
 
-        DB::transaction(function () use ($request, $openAccount, $company, $hireDate): void {
-            $companyId = $company->from($request);
+        DB::transaction(function () use ($request, $openAccount, $companyId, $hireDate): void {
             $role = $request->user()?->role;
 
             if (! is_string($role)) {
@@ -97,15 +172,16 @@ final class EmployeeController extends Controller
             ));
         });
 
-        return redirect()->route('admin.employees.index')->with('status', 'Empleado creado.');
+        return redirect()->route('employees.page')->with('status', 'Empleado creado.');
     }
 
     public function update(
         UpdateEmployeeRequest $request,
         int $employeeProfile,
         UpdateEmployee $update,
-        CurrentCompanyId $company,
+        TenantCompanyScope $scope,
     ): RedirectResponse {
+        $companyId = $scope->forMutation($request);
         $hireDate = null;
 
         if ($request->filled('hire_date')) {
@@ -125,7 +201,6 @@ final class EmployeeController extends Controller
             }
         }
 
-        $companyId = $company->from($request);
         $role = $request->user()?->role;
 
         if (! is_string($role)) {
@@ -151,16 +226,16 @@ final class EmployeeController extends Controller
             $extension,
         ));
 
-        return redirect()->route('admin.employees.index')->with('status', 'Empleado actualizado.');
+        return redirect()->route('employees.page')->with('status', 'Empleado actualizado.');
     }
 
     public function assignSchedule(
         AssignEmployeeScheduleRequest $request,
         int $employeeProfile,
         AssignEmployeeSchedule $assign,
-        CurrentCompanyId $company,
+        TenantCompanyScope $scope,
     ): RedirectResponse {
-        $companyId = $company->from($request);
+        $companyId = $scope->forMutation($request);
         $role = $request->user()?->role;
 
         if (! is_string($role)) {
@@ -175,14 +250,14 @@ final class EmployeeController extends Controller
             $request->integer('schedule_id'),
         ));
 
-        return redirect()->route('admin.employees.index')->with('status', 'Horario actualizado.');
+        return redirect()->route('employees.page')->with('status', 'Horario actualizado.');
     }
 
     /**
      * @param  list<Employee>  $employees
      * @return array<int, array{name: string, nickname: string, email: ?string, phone: ?string, photoPath: ?string}>
      */
-    private function accounts(CompanyId $companyId, array $employees): array
+    private function accounts(array $employees): array
     {
         $userIds = array_map(fn (Employee $employee): int => $employee->userId(), $employees);
 
@@ -191,7 +266,6 @@ final class EmployeeController extends Controller
         }
 
         return User::query()
-            ->where('company_id', $companyId->value)
             ->whereIn('id', $userIds)
             ->get(['id', 'name', 'nickname', 'email', 'phone', 'photo_path'])
             ->mapWithKeys(fn (User $user): array => [
@@ -202,6 +276,39 @@ final class EmployeeController extends Controller
                     'phone' => $user->phone !== null ? (string) $user->phone : null,
                     'photoPath' => $user->photo_path !== null ? (string) $user->photo_path : null,
                 ],
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  list<Employee>  $employees
+     * @return array<int, string>
+     */
+    private function companyNames(array $employees): array
+    {
+        $ids = array_values(array_unique(array_map(
+            fn (Employee $employee): int => $employee->companyId()->value,
+            $employees,
+        )));
+
+        if ($ids === []) {
+            return [];
+        }
+
+        return Company::query()->whereIn('id', $ids)->pluck('name', 'id')->all();
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function companies(): array
+    {
+        return Company::query()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (Company $company): array => [
+                'id' => (int) $company->id,
+                'name' => (string) $company->name,
             ])
             ->all();
     }
@@ -228,5 +335,41 @@ final class EmployeeController extends Controller
         }
 
         return $map;
+    }
+
+    /**
+     * @param  list<object{id(): int, name(): string}>  $rows
+     * @return list<array{id: int, name: string}>
+     */
+    private function options(array $rows): array
+    {
+        return array_map(
+            fn (object $row): array => ['id' => $row->id(), 'name' => $row->name()],
+            $rows,
+        );
+    }
+
+    private function optionalInt(Request $request, string $key): ?int
+    {
+        if (! $request->filled($key)) {
+            return null;
+        }
+
+        $value = $request->integer($key);
+
+        if ($value < 1) {
+            return null;
+        }
+
+        return $value;
+    }
+
+    private function optionalBool(Request $request, string $key): ?bool
+    {
+        if (! $request->has($key) || $request->input($key) === '' || $request->input($key) === null) {
+            return null;
+        }
+
+        return $request->boolean($key);
     }
 }

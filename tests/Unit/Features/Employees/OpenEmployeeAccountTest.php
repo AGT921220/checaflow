@@ -140,6 +140,14 @@ final class AccountEmployees implements EmployeeRepository
         return [];
     }
 
+    
+    public function paginate(\App\Features\Employees\Domain\SearchEmployeesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
+    {
+        $items = $this->search($criteria);
+
+        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
+    }
+
     public function count(CompanyId $companyId): int
     {
         return 0;
@@ -183,6 +191,14 @@ final class AccountBranches implements BranchRepository
     {
         return [];
     }
+
+    public function paginate(\App\Features\Branches\Domain\SearchBranchesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
+    {
+        $items = $this->search($criteria);
+
+        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
+    }
+
 }
 
 final class AccountSchedules implements ScheduleRepository
@@ -207,6 +223,14 @@ final class AccountSchedules implements ScheduleRepository
     {
         return [];
     }
+
+    public function paginate(\App\Features\Schedules\Domain\SearchSchedulesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
+    {
+        $items = $this->search($criteria);
+
+        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
+    }
+
 }
 
 final class AccountMembers implements CompanyMember

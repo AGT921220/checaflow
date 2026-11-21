@@ -1,10 +1,10 @@
 import { type UserRole } from './types';
 
 const DESTINATIONS: Record<UserRole, string> = {
-    super_admin: '/platform',
-    company_admin: '/admin/attendance',
-    hr: '/admin/attendance',
-    employee: '/attendance',
+    super_admin: '/attendance',
+    company_admin: '/attendance',
+    hr: '/attendance',
+    employee: '/punch',
 };
 
 function isUserRole(role: string): role is UserRole {

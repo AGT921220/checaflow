@@ -20,6 +20,7 @@ final class RolePermissions implements PermissionChecker
             UserRole::SuperAdmin => [
                 PermissionName::CompaniesManage,
                 PermissionName::CompanyAdminsManage,
+                PermissionName::AttendanceViewCompanyReport,
             ],
             UserRole::CompanyAdmin => [
                 PermissionName::BranchesManage,

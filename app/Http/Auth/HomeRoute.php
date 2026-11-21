@@ -10,9 +10,9 @@ final class HomeRoute
 {
     private const ROUTES = [
         'employee' => 'attendance.today',
-        'company_admin' => 'admin.attendance.index',
-        'hr' => 'admin.attendance.index',
-        'super_admin' => 'platform.home',
+        'company_admin' => 'attendance.page',
+        'hr' => 'attendance.page',
+        'super_admin' => 'attendance.page',
     ];
 
     public function nameFor(string $role): string

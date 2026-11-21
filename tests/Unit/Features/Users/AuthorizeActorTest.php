@@ -31,6 +31,7 @@ final class AuthorizeActorTest extends TestCase
             UserRole::SuperAdmin->value => [
                 PermissionName::CompaniesManage,
                 PermissionName::CompanyAdminsManage,
+                PermissionName::AttendanceViewCompanyReport,
             ],
             UserRole::CompanyAdmin->value => [
                 PermissionName::BranchesManage,
@@ -200,6 +201,14 @@ final class CatalogBranchRepository implements BranchRepository
     {
         return [];
     }
+
+    public function paginate(\App\Features\Branches\Domain\SearchBranchesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
+    {
+        $items = $this->search($criteria);
+
+        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
+    }
+
 }
 
 final class CatalogCompanies implements \App\Features\Users\Domain\CompanyRepository

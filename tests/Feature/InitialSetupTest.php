@@ -29,14 +29,17 @@ class InitialSetupTest extends TestCase
         $this->post('/login', [
             'nickname' => 'superadmin',
             'password' => 'admin',
-        ])->assertRedirect(route('platform.home'));
+        ])->assertRedirect(route('attendance.page'));
+
+        $this->get(route('attendance.page'))
+            ->assertOk()
+            ->assertSee('Asistencia del día');
 
         $this->get(route('platform.home'))
             ->assertOk()
             ->assertSee('Plataforma')
             ->assertSee('superadmin')
-            ->assertSee('Todavía no hay empresas.')
-            ->assertDontSee('Asistencia del día');
+            ->assertSee('Todavía no hay empresas.');
 
         $this->artisan('initial-setup')
             ->expectsOutputToContain('El administrador ya existe.')

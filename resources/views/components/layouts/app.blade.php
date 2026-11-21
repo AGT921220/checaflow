@@ -2,7 +2,8 @@
 
 @php
     $role = auth()->user()?->role;
-    $isAdmin = in_array($role, ['company_admin', 'hr'], true);
+    $isAdmin = in_array($role, ['company_admin', 'hr', 'super_admin'], true);
+    $isPlatform = $role === 'super_admin';
     $canOwnPhoto = in_array($role, ['company_admin', 'hr', 'employee'], true);
     $routeName = request()->route()?->getName();
     $photoPath = auth()->user()?->photo_path;
@@ -25,7 +26,7 @@
                 class="cf-brand"
             >
                 <img
-                    src="{{ asset('images/checaflow.png') }}"
+                    src="{{ asset('images/checaflow-logo.png') }}"
                     alt="ChecaFlow"
                     class="cf-brand-mark"
                 >
@@ -34,11 +35,14 @@
             @auth
                 <nav class="flex flex-wrap items-center gap-1">
                     @if ($isAdmin)
-                        <a class="cf-nav-link" href="{{ route('admin.attendance.index') }}" @if ($routeName === 'admin.attendance.index') aria-current="page" @endif>Asistencia</a>
-                        <a class="cf-nav-link" href="{{ route('admin.reports.index') }}" @if ($routeName === 'admin.reports.index') aria-current="page" @endif>Reportes</a>
-                        <a class="cf-nav-link" href="{{ route('admin.branches.index') }}" @if ($routeName === 'admin.branches.index') aria-current="page" @endif>Sucursales</a>
-                        <a class="cf-nav-link" href="{{ route('admin.schedules.index') }}" @if ($routeName === 'admin.schedules.index') aria-current="page" @endif>Horarios</a>
-                        <a class="cf-nav-link" href="{{ route('admin.employees.index') }}" @if ($routeName === 'admin.employees.index') aria-current="page" @endif>Empleados</a>
+                        <a class="cf-nav-link" href="{{ route('attendance.page') }}" @if ($routeName === 'attendance.page') aria-current="page" @endif>Asistencia</a>
+                        <a class="cf-nav-link" href="{{ route('reports.page') }}" @if ($routeName === 'reports.page') aria-current="page" @endif>Reportes</a>
+                        <a class="cf-nav-link" href="{{ route('branches.page') }}" @if ($routeName === 'branches.page') aria-current="page" @endif>Sucursales</a>
+                        <a class="cf-nav-link" href="{{ route('schedules.page') }}" @if ($routeName === 'schedules.page') aria-current="page" @endif>Horarios</a>
+                        <a class="cf-nav-link" href="{{ route('employees.page') }}" @if ($routeName === 'employees.page') aria-current="page" @endif>Empleados</a>
+                    @endif
+                    @if ($isPlatform)
+                        <a class="cf-nav-link" href="{{ route('platform.home') }}" @if ($routeName === 'platform.home') aria-current="page" @endif>Plataforma</a>
                     @endif
                     @if ($canOwnPhoto)
                         <details class="relative">

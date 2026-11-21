@@ -193,6 +193,14 @@ final class LimitBranches implements BranchRepository
     {
         return [];
     }
+
+    public function paginate(\App\Features\Branches\Domain\SearchBranchesCriteria $criteria, \App\Features\Shared\Domain\PageQuery $page): \App\Features\Shared\Domain\PagedResult
+    {
+        $items = $this->search($criteria);
+
+        return new \App\Features\Shared\Domain\PagedResult($items, count($items), $page->page, $page->perPage);
+    }
+
 }
 
 final class LimitPlans implements PlanRepository

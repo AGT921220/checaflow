@@ -12,7 +12,7 @@ final readonly class SearchSchedulesCriteria
     public Sort $sort;
 
     public function __construct(
-        public CompanyId $companyId,
+        public ?CompanyId $companyId,
         public ?bool $isActive = null,
         string $sortColumn = 'name',
         string $sortDirection = 'asc',

@@ -16,7 +16,7 @@ export function mountModals(root = document) {
                 return;
             }
 
-            openModal(id);
+            openModalById(id);
         });
     });
 
@@ -42,12 +42,12 @@ export function mountModals(root = document) {
         const id = auto.dataset.modal;
 
         if (id) {
-            openModal(id);
+            openModalById(id);
         }
     }
 }
 
-function openModal(id) {
+export function openModalById(id) {
     const modal = document.querySelector(`[data-modal="${CSS.escape(id)}"]`);
 
     if (!(modal instanceof HTMLElement)) {

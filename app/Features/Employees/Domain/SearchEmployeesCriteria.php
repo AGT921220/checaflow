@@ -13,7 +13,7 @@ final readonly class SearchEmployeesCriteria
     public Sort $sort;
 
     public function __construct(
-        public CompanyId $companyId,
+        public ?CompanyId $companyId,
         public ?int $branchId = null,
         public ?int $scheduleId = null,
         public ?bool $isActive = null,

@@ -10,9 +10,12 @@ use App\Features\Employees\Domain\Exceptions\EmployeeIsNotPersisted;
 use App\Features\Employees\Domain\Exceptions\EmployeeNotFound;
 use App\Features\Employees\Domain\SearchEmployeesCriteria;
 use App\Features\Shared\Domain\CompanyId;
+use App\Features\Shared\Domain\PagedResult;
+use App\Features\Shared\Domain\PageQuery;
 use App\Models\EmployeeProfile;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Illuminate\Database\Eloquent\Builder;
 
 final class EloquentEmployeeRepository implements EmployeeRepository
 {
@@ -47,7 +50,39 @@ final class EloquentEmployeeRepository implements EmployeeRepository
 
     public function search(SearchEmployeesCriteria $criteria): array
     {
-        $query = EmployeeProfile::query()->where('company_id', $criteria->companyId->value);
+        return array_values(
+            $this->filtered($criteria)
+                ->orderBy($criteria->sort->column, $criteria->sort->direction)
+                ->get()
+                ->map(fn (EmployeeProfile $record): Employee => $this->map($record))
+                ->all()
+        );
+    }
+
+    public function paginate(SearchEmployeesCriteria $criteria, PageQuery $page): PagedResult
+    {
+        $query = $this->filtered($criteria)->orderBy($criteria->sort->column, $criteria->sort->direction);
+        $total = (clone $query)->count();
+        $items = $query
+            ->offset($page->offset())
+            ->limit($page->perPage)
+            ->get()
+            ->map(fn (EmployeeProfile $record): Employee => $this->map($record))
+            ->all();
+
+        return new PagedResult(array_values($items), $total, $page->page, $page->perPage);
+    }
+
+    /**
+     * @return Builder<EmployeeProfile>
+     */
+    private function filtered(SearchEmployeesCriteria $criteria): Builder
+    {
+        $query = EmployeeProfile::query();
+
+        if ($criteria->companyId !== null) {
+            $query->where('company_id', $criteria->companyId->value);
+        }
 
         if ($criteria->branchId !== null) {
             $query->where('branch_id', $criteria->branchId);
@@ -65,9 +100,7 @@ final class EloquentEmployeeRepository implements EmployeeRepository
             $query->where('employee_code', $criteria->employeeCode);
         }
 
-        $query->orderBy($criteria->sort->column, $criteria->sort->direction);
-
-        return array_values($query->get()->map(fn (EmployeeProfile $record): Employee => $this->map($record))->all());
+        return $query;
     }
 
     public function count(CompanyId $companyId): int

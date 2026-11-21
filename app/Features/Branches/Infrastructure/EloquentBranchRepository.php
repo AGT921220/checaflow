@@ -11,7 +11,10 @@ use App\Features\Branches\Domain\Exceptions\BranchNotFound;
 use App\Features\Branches\Domain\SearchBranchesCriteria;
 use App\Features\Shared\Domain\CompanyId;
 use App\Features\Shared\Domain\GeoPoint;
+use App\Features\Shared\Domain\PagedResult;
+use App\Features\Shared\Domain\PageQuery;
 use App\Models\Branch as BranchRecord;
+use Illuminate\Database\Eloquent\Builder;
 
 final class EloquentBranchRepository implements BranchRepository
 {
@@ -54,15 +57,45 @@ final class EloquentBranchRepository implements BranchRepository
 
     public function search(SearchBranchesCriteria $criteria): array
     {
-        $query = BranchRecord::query()->where('company_id', $criteria->companyId->value);
+        return array_values(
+            $this->filtered($criteria)
+                ->orderBy($criteria->sort->column, $criteria->sort->direction)
+                ->get()
+                ->map(fn (BranchRecord $record): Branch => $this->map($record))
+                ->all()
+        );
+    }
+
+    public function paginate(SearchBranchesCriteria $criteria, PageQuery $page): PagedResult
+    {
+        $query = $this->filtered($criteria)->orderBy($criteria->sort->column, $criteria->sort->direction);
+        $total = (clone $query)->count();
+        $items = $query
+            ->offset($page->offset())
+            ->limit($page->perPage)
+            ->get()
+            ->map(fn (BranchRecord $record): Branch => $this->map($record))
+            ->all();
+
+        return new PagedResult(array_values($items), $total, $page->page, $page->perPage);
+    }
+
+    /**
+     * @return Builder<BranchRecord>
+     */
+    private function filtered(SearchBranchesCriteria $criteria): Builder
+    {
+        $query = BranchRecord::query();
+
+        if ($criteria->companyId !== null) {
+            $query->where('company_id', $criteria->companyId->value);
+        }
 
         if ($criteria->isActive !== null) {
             $query->where('is_active', $criteria->isActive);
         }
 
-        $query->orderBy($criteria->sort->column, $criteria->sort->direction);
-
-        return array_values($query->get()->map(fn (BranchRecord $record): Branch => $this->map($record))->all());
+        return $query;
     }
 
     private function record(Branch $branch): BranchRecord

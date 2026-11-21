@@ -1,6 +1,11 @@
 import './features/branches/map.js';
 import './features/attendance/punch.js';
 import './features/ui/modal.js';
+import './features/admin/employees-list.js';
+import './features/admin/branches-list.js';
+import './features/admin/schedules-list.js';
+import './features/admin/attendance-list.js';
+import './features/admin/reports-list.js';
 
 const clock = document.querySelector('[data-live-clock]');
 

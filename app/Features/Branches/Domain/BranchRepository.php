@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Features\Branches\Domain;
 
 use App\Features\Shared\Domain\CompanyId;
+use App\Features\Shared\Domain\PagedResult;
+use App\Features\Shared\Domain\PageQuery;
 
 interface BranchRepository
 {
@@ -21,4 +23,6 @@ interface BranchRepository
      * @return list<Branch>
      */
     public function search(SearchBranchesCriteria $criteria): array;
+
+    public function paginate(SearchBranchesCriteria $criteria, PageQuery $page): PagedResult;
 }

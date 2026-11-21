@@ -25,7 +25,7 @@ class WebAttendanceTest extends TestCase
     public function test_guest_is_sent_to_login(): void
     {
         $this->get('/')->assertRedirect(route('login'));
-        $this->get('/attendance')->assertRedirect('/login');
+        $this->get('/punch')->assertRedirect('/login');
     }
 
     public function test_employee_punch_stays_inside_the_company(): void
@@ -34,12 +34,12 @@ class WebAttendanceTest extends TestCase
         $other = $this->tenant('other', 'E-200');
 
         $this->actingAs($acme['employee'])
-            ->get('/attendance')
+            ->get('/punch')
             ->assertOk()
             ->assertSee('Entrada');
 
         $this->actingAs($acme['employee'])
-            ->post('/attendance/punches', ['punch_type' => 'clock_in'])
+            ->post('/punch/punches', ['punch_type' => 'clock_in'])
             ->assertRedirect(route('attendance.today'));
 
         $this->assertDatabaseHas('attendance_logs', [
@@ -56,7 +56,7 @@ class WebAttendanceTest extends TestCase
         ]);
 
         $this->actingAs($acme['employee'])
-            ->get('/attendance')
+            ->get('/punch')
             ->assertOk()
             ->assertSee('Salir a comer');
 
@@ -67,15 +67,14 @@ class WebAttendanceTest extends TestCase
         $this->actingAs($acme['hr'])
             ->get('/admin/attendance')
             ->assertOk()
-            ->assertSee('E-100')
-            ->assertSee('Incompleto')
-            ->assertDontSee('E-200');
+            ->assertJsonFragment(['code' => 'E-100'])
+            ->assertJsonMissing(['code' => 'E-200']);
 
         $this->actingAs($other['hr'])
             ->get('/admin/attendance')
             ->assertOk()
-            ->assertSee('E-200')
-            ->assertDontSee('E-100');
+            ->assertJsonFragment(['code' => 'E-200'])
+            ->assertJsonMissing(['code' => 'E-100']);
     }
 
     public function test_hr_opens_a_schedule_and_an_employee_and_the_admin_opens_a_branch(): void
@@ -92,13 +91,12 @@ class WebAttendanceTest extends TestCase
                 'working_days' => ['monday', 'tuesday'],
                 'is_active' => '1',
             ])
-            ->assertRedirect(route('admin.schedules.index'));
+            ->assertRedirect(route('schedules.page'));
 
         $this->actingAs($acme['hr'])
             ->get('/admin/schedules')
             ->assertOk()
-            ->assertSee('Lunes')
-            ->assertSee('Desk');
+            ->assertJsonFragment(['name' => 'Desk']);
 
         $this->actingAs($acme['admin'])
             ->post('/admin/branches', [
@@ -107,7 +105,7 @@ class WebAttendanceTest extends TestCase
                 'require_geofence' => '0',
                 'is_active' => '1',
             ])
-            ->assertRedirect(route('admin.branches.index'));
+            ->assertRedirect(route('branches.page'));
 
         $this->actingAs($acme['hr'])
             ->post('/admin/employees', [
@@ -122,7 +120,7 @@ class WebAttendanceTest extends TestCase
                 'branch_id' => $acme['branch']->id,
                 'schedule_id' => $acme['schedule']->id,
             ])
-            ->assertRedirect(route('admin.employees.index'));
+            ->assertRedirect(route('employees.page'));
 
         $this->actingAs($acme['hr'])
             ->post('/admin/employees', [
@@ -134,7 +132,7 @@ class WebAttendanceTest extends TestCase
                 'branch_id' => $acme['branch']->id,
                 'schedule_id' => $acme['schedule']->id,
             ])
-            ->assertRedirect(route('admin.employees.index'));
+            ->assertRedirect(route('employees.page'));
 
         $this->assertDatabaseHas('branches', [
             'company_id' => $acme['company']->id,
@@ -159,7 +157,7 @@ class WebAttendanceTest extends TestCase
         ]);
 
         $this->actingAs($acme['hr'])
-            ->get('/admin/reports')
+            ->get('/reports')
             ->assertOk()
             ->assertSee('Reportes');
 
@@ -182,7 +180,7 @@ class WebAttendanceTest extends TestCase
         $this->post('/login', [
             'nickname' => $acme['hr']->email,
             'password' => 'password',
-        ])->assertRedirect(route('admin.attendance.index'));
+        ])->assertRedirect(route('attendance.page'));
     }
 
     /**

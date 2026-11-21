@@ -33,20 +33,29 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('role:employee')->group(function () {
-        Route::get('/attendance', [TodayAttendanceController::class, 'index'])->name('attendance.today');
-        Route::post('/attendance/punches', [TodayAttendanceController::class, 'store'])->name('attendance.punches.store');
+        Route::get('/punch', [TodayAttendanceController::class, 'index'])->name('attendance.today');
+        Route::post('/punch/punches', [TodayAttendanceController::class, 'store'])->name('attendance.punches.store');
     });
 
-    Route::middleware('role:company_admin,hr')->group(function () {
+    Route::middleware('role:company_admin,hr,super_admin')->group(function () {
+        Route::get('/attendance', [DailyAttendanceController::class, 'page'])->name('attendance.page');
+        Route::get('/reports', [AttendanceReportController::class, 'page'])->name('reports.page');
+        Route::get('/branches', [BranchController::class, 'page'])->name('branches.page');
+        Route::get('/schedules', [ScheduleController::class, 'page'])->name('schedules.page');
+        Route::get('/employees', [EmployeeController::class, 'page'])->name('employees.page');
+
         Route::get('/admin/attendance', [DailyAttendanceController::class, 'index'])->name('admin.attendance.index');
         Route::get('/admin/reports', [AttendanceReportController::class, 'index'])->name('admin.reports.index');
         Route::get('/admin/branches', [BranchController::class, 'index'])->name('admin.branches.index');
+        Route::get('/admin/schedules', [ScheduleController::class, 'index'])->name('admin.schedules.index');
+        Route::get('/admin/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
+    });
+
+    Route::middleware('role:company_admin,hr')->group(function () {
         Route::post('/admin/branches', [BranchController::class, 'store'])->name('admin.branches.store');
         Route::put('/admin/branches/{branch}', [BranchController::class, 'update'])->name('admin.branches.update');
-        Route::get('/admin/schedules', [ScheduleController::class, 'index'])->name('admin.schedules.index');
         Route::post('/admin/schedules', [ScheduleController::class, 'store'])->name('admin.schedules.store');
         Route::put('/admin/schedules/{schedule}', [ScheduleController::class, 'update'])->name('admin.schedules.update');
-        Route::get('/admin/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
         Route::post('/admin/employees', [EmployeeController::class, 'store'])->name('admin.employees.store');
         Route::put('/admin/employees/{employeeProfile}', [EmployeeController::class, 'update'])->name('admin.employees.update');
         Route::post('/admin/employees/{employeeProfile}/schedule', [EmployeeController::class, 'assignSchedule'])

@@ -13,7 +13,10 @@ use App\Features\Schedules\Domain\SearchSchedulesCriteria;
 use App\Features\Schedules\Domain\TimeOfDay;
 use App\Features\Schedules\Domain\WorkingDays;
 use App\Features\Shared\Domain\CompanyId;
+use App\Features\Shared\Domain\PagedResult;
+use App\Features\Shared\Domain\PageQuery;
 use App\Models\Schedule as ScheduleRecord;
+use Illuminate\Database\Eloquent\Builder;
 
 final class EloquentScheduleRepository implements ScheduleRepository
 {
@@ -48,15 +51,45 @@ final class EloquentScheduleRepository implements ScheduleRepository
 
     public function search(SearchSchedulesCriteria $criteria): array
     {
-        $query = ScheduleRecord::query()->where('company_id', $criteria->companyId->value);
+        return array_values(
+            $this->filtered($criteria)
+                ->orderBy($criteria->sort->column, $criteria->sort->direction)
+                ->get()
+                ->map(fn (ScheduleRecord $record): Schedule => $this->map($record))
+                ->all()
+        );
+    }
+
+    public function paginate(SearchSchedulesCriteria $criteria, PageQuery $page): PagedResult
+    {
+        $query = $this->filtered($criteria)->orderBy($criteria->sort->column, $criteria->sort->direction);
+        $total = (clone $query)->count();
+        $items = $query
+            ->offset($page->offset())
+            ->limit($page->perPage)
+            ->get()
+            ->map(fn (ScheduleRecord $record): Schedule => $this->map($record))
+            ->all();
+
+        return new PagedResult(array_values($items), $total, $page->page, $page->perPage);
+    }
+
+    /**
+     * @return Builder<ScheduleRecord>
+     */
+    private function filtered(SearchSchedulesCriteria $criteria): Builder
+    {
+        $query = ScheduleRecord::query();
+
+        if ($criteria->companyId !== null) {
+            $query->where('company_id', $criteria->companyId->value);
+        }
 
         if ($criteria->isActive !== null) {
             $query->where('is_active', $criteria->isActive);
         }
 
-        $query->orderBy($criteria->sort->column, $criteria->sort->direction);
-
-        return array_values($query->get()->map(fn (ScheduleRecord $record): Schedule => $this->map($record))->all());
+        return $query;
     }
 
     private function record(Schedule $schedule): ScheduleRecord

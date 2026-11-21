@@ -19,7 +19,7 @@ final readonly class CompanyAttendanceRangeCriteria
 
     public function __construct(
         public UserRole $actorRole,
-        public CompanyId $actorCompanyId,
+        public ?CompanyId $actorCompanyId,
         public CompanyId $companyId,
         public WorkDate $fromDate,
         public WorkDate $toDate,

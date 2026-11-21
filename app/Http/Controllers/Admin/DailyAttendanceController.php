@@ -20,27 +20,59 @@ use App\Features\Shared\Domain\CompanyId;
 use App\Features\Shared\Domain\Exceptions\CompanyNotFound;
 use App\Features\Users\Domain\UserRole;
 use App\Http\Attendance\AttendanceLabels;
-use App\Http\Auth\CurrentCompanyId;
+use App\Http\Auth\RequestPageQuery;
+use App\Http\Auth\TenantCompanyScope;
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\User;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 final class DailyAttendanceController extends Controller
 {
+    public function page(Request $request, TenantCompanyScope $scope, SearchBranches $searchBranches): View
+    {
+        $isPlatform = $scope->isPlatform($request);
+        $companyId = $scope->optional($request);
+        $branches = $companyId === null
+            ? []
+            : $searchBranches->handle(new SearchBranchesCriteria($companyId, true));
+
+        return view('admin.attendance.index', [
+            'title' => 'Asistencia del día',
+            'isPlatform' => $isPlatform,
+            'companies' => $isPlatform ? $this->companies() : [],
+            'branches' => $branches,
+            'workDate' => $request->query('work_date', ''),
+        ]);
+    }
+
     public function index(
         Request $request,
         GetCompanyDailyReport $report,
         SearchBranches $searchBranches,
         SearchEmployees $searchEmployees,
         CompanyClock $clock,
-        CurrentCompanyId $company,
+        TenantCompanyScope $scope,
+        RequestPageQuery $pages,
         AttendanceLabels $labels,
-    ): View {
-        $companyId = $company->from($request);
+    ): JsonResponse {
+        $companyId = $scope->optional($request);
+
+        if ($companyId === null) {
+            return response()->json([
+                'data' => [],
+                'meta' => ['total' => 0, 'page' => 1, 'per_page' => 15, 'last_page' => 1],
+                'stats' => ['present' => 0, 'late' => 0, 'atLunch' => 0, 'incomplete' => 0],
+                'filters' => ['branches' => []],
+                'message' => 'Selecciona una empresa.',
+            ]);
+        }
+
         $role = $request->user()?->role;
 
         if (! is_string($role)) {
@@ -50,15 +82,17 @@ final class DailyAttendanceController extends Controller
         $zone = $this->zone($clock, $companyId);
         $workDate = $this->workDate($request, $clock->now(), $zone);
         $branchId = $this->branchId($request);
-        $branches = $searchBranches->handle(new SearchBranchesCriteria($companyId, true));
-        $employees = $searchEmployees->handle(new SearchEmployeesCriteria(
+        $page = $pages->from($request);
+        $result = $searchEmployees->page(new SearchEmployeesCriteria(
             companyId: $companyId,
             branchId: $branchId,
             isActive: true,
-        ));
+        ), $page);
+        /** @var list<Employee> $employees */
+        $employees = $result->items;
         $summaries = $report->handle(new CompanyDailyReportCriteria(
             UserRole::from($role),
-            $companyId,
+            $scope->isPlatform($request) ? null : $companyId,
             $companyId,
             $workDate,
             $branchId,
@@ -69,18 +103,24 @@ final class DailyAttendanceController extends Controller
             $byEmployee[$summary->employeeProfileId()] = $summary;
         }
 
-        $board = $this->board($employees, $byEmployee, $this->names($companyId, $employees), $zone, $labels);
+        $board = $this->board($employees, $byEmployee, $this->names($employees), $zone, $labels);
 
-        return view('admin.attendance.index', [
-            'title' => 'Asistencia del día',
-            'workDate' => $workDate->value,
-            'branchId' => $branchId,
-            'branches' => $branches,
-            'rows' => $board['rows'],
-            'present' => $board['present'],
-            'late' => $board['late'],
-            'atLunch' => $board['atLunch'],
-            'incomplete' => $board['incomplete'],
+        return response()->json([
+            'data' => $board['rows'],
+            'meta' => $result->meta(),
+            'stats' => [
+                'present' => $board['present'],
+                'late' => $board['late'],
+                'atLunch' => $board['atLunch'],
+                'incomplete' => $board['incomplete'],
+            ],
+            'filters' => [
+                'branches' => array_map(
+                    fn ($branch): array => ['id' => $branch->id(), 'name' => $branch->name()],
+                    $searchBranches->handle(new SearchBranchesCriteria($companyId, true)),
+                ),
+                'workDate' => $workDate->value,
+            ],
         ]);
     }
 
@@ -119,7 +159,7 @@ final class DailyAttendanceController extends Controller
      * @param  list<Employee>  $employees
      * @return array<int, string>
      */
-    private function names(CompanyId $companyId, array $employees): array
+    private function names(array $employees): array
     {
         $ids = array_map(fn (Employee $employee): int => $employee->userId(), $employees);
 
@@ -128,7 +168,6 @@ final class DailyAttendanceController extends Controller
         }
 
         return User::query()
-            ->where('company_id', $companyId->value)
             ->whereIn('id', $ids)
             ->pluck('name', 'id')
             ->all();
@@ -214,5 +253,20 @@ final class DailyAttendanceController extends Controller
         }
 
         return $instant->setTimezone($zone)->format('H:i');
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function companies(): array
+    {
+        return Company::query()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (Company $company): array => [
+                'id' => (int) $company->id,
+                'name' => (string) $company->name,
+            ])
+            ->all();
     }
 }

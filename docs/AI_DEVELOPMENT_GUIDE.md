@@ -61,9 +61,13 @@ Ruta: `app/Features/{Feature}/Application/{VerbNoun}.php`. El DTO vive en `Domai
 | `CreateBranch`, `UpdateBranch`, `SearchBranches` | Sucursal y geocerca. Exigen `branches.manage` |
 | `CreateSchedule`, `UpdateSchedule`, `SearchSchedules` | Horario y días laborables. Exigen `schedules.manage` |
 
-## Pantalla admin (lista + modal)
+## Pantalla del panel (shell + fetch + modal)
 
-Copia `resources/views/admin/employees/index.blade.php`. Misma estructura en branches, schedules, attendance y reports: `cf-page-head` + un panel lista (o tabla) + alta/edición en `cf-modal` con `_form` / `openModal`. Detalle en `.cursor/rules/04-admin-ui.mdc`. Paleta `#1767E2` y blanco.
+- Página: `GET /{seccion}` (Blade shell).
+- Datos: `GET /admin/{seccion}?page=` JSON (`PagedResult`).
+- Mutaciones: `POST`/`PUT` `/admin/{seccion}` (tenant).
+- Checador: `/punch`.
+- Copia `admin/employees/index` + `resources/js/features/admin/*-list.js`. `super_admin` ve las mismas secciones (lectura; filtro empresa). Detalle en `.cursor/rules/04-admin-ui.mdc`.
 
 ## Filtros
 

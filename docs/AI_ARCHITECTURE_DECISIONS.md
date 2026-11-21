@@ -111,3 +111,10 @@
 - Contexto: Sucursales y Horarios usaban panel + formulario lateral; Empleados ya tenía lista + modal.
 - Decisión: `admin/employees` es el canon. Branches, schedules, attendance y reports usan `cf-page-head` + un panel. Alta/edición en `cf-modal` con `_form` / `openModal`. Paleta `#1767E2` y blanco. `UpdateSchedule` completa la edición de horarios.
 - Consecuencia: no hay formularios laterales en admin. Regla `.cursor/rules/04-admin-ui.mdc`.
+
+## ADR-017 — Shells sin /admin, JSON en /admin, super_admin lectora
+
+- Estado: aceptada
+- Contexto: las listas debían paginarse y cargarse con fetch; `super_admin` necesitaba las mismas secciones sin mutar tenants.
+- Decisión: páginas en `/{seccion}`; JSON y mutaciones en `/admin/{seccion}`; checador en `/punch`. `PageQuery`/`PagedResult`. `super_admin` gana `attendance.view_company_report` y ve listados (filtro empresa); mutaciones tenant siguen denegadas.
+- Consecuencia: Home de `super_admin`/`company_admin`/`hr` es `/attendance`. `/platform` queda para alta de empresas.

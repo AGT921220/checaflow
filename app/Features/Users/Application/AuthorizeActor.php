@@ -25,12 +25,16 @@ final class AuthorizeActor
         ?int $actorEmployeeProfileId = null,
         ?int $targetEmployeeProfileId = null,
     ): void {
-        if ($actorRole === UserRole::SuperAdmin && $permission->isTenant()) {
+        if (! $this->permissions->allows($actorRole, $permission)) {
             throw new PermissionDenied;
         }
 
-        if (! $this->permissions->allows($actorRole, $permission)) {
-            throw new PermissionDenied;
+        if ($actorRole === UserRole::SuperAdmin) {
+            if ($permission->isTenant() && $permission !== PermissionName::AttendanceViewCompanyReport) {
+                throw new PermissionDenied;
+            }
+
+            return;
         }
 
         $actor = new CompanyActor($actorRole, $actorCompanyId, $actorEmployeeProfileId);

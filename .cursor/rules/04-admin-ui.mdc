@@ -1,22 +1,29 @@
 ---
-description: Estructura de pantallas admin (lista + modal)
-globs: resources/views/admin/**/*.blade.php,resources/js/features/ui/**/*.js
+description: Estructura de pantallas del panel (lista fetch + modal)
+globs: resources/views/admin/**/*.blade.php,resources/js/features/admin/**/*.js,resources/js/features/ui/**/*.js
 alwaysApply: false
 ---
 
-# Admin UI
+# Panel UI
 
-Referencia canónica: `resources/views/admin/employees/index.blade.php`.
+Referencia: `resources/views/admin/employees/index.blade.php` + `resources/js/features/admin/*-list.js`.
 
-Toda sección admin (`employees`, `branches`, `schedules`, y el shell de `attendance` / `reports`) sigue esta estructura:
+## Rutas
 
-1. Contenedor `space-y-5`.
-2. `cf-page-head`: título (`cf-title`) + subtítulo (`cf-subtitle`) a la izquierda; CTA primaria o filtros a la derecha.
-3. Un solo `x-ui.panel` con `overflow-hidden p-0 sm:p-0`.
-4. Vacío centrado (título display + texto + CTA si aplica). Sin layout de dos columnas con formulario lateral.
-5. Lista: cabecera de columnas en `sm:grid` + `ul.divide-y` con filas `cf-data-row` (grid en desktop). Badges `cf-badge-*`. Acción `Editar` con `cf-btn-ghost`.
-6. Alta y edición viven en modales `cf-modal` fuera del panel. Hidden `_form` (`create` / `edit:{id}`). El controller pasa `openModal` = `old('_form')` y `data-modal-auto-open` reabre tras error de validación.
-7. Paleta: `#1767E2` y blanco (`--color-accent`, `--color-paper`). No cream/terracotta/teal.
-8. Mapas de sucursal se montan al abrir el modal (`cf:modal-open`), no mientras el modal está `hidden`.
+- Páginas Blade (shell): `/{seccion}` → `employees.page`, `branches.page`, `schedules.page`, `attendance.page`, `reports.page`.
+- JSON paginado: `GET /admin/{seccion}` (`admin.*.index`).
+- Mutaciones tenant: `POST`/`PUT` `/admin/{seccion}` (solo `company_admin`/`hr`).
+- Checador del empleado: `/punch` (no `/attendance`).
 
-Asistencia y reportes usan el mismo head + panel; en lugar de filas editables muestran tabla o vacío, y el CTA del head es el formulario de filtros.
+## Estructura de pantalla
+
+1. `space-y-5` con `data-*-list`, `data-list-url`, `data-page`.
+2. `cf-page-head` + filtros (`data-list-filter`) + CTA si `canManage`.
+3. Un panel: filas vacías rellenadas por fetch; pager con `data-list-pager`.
+4. Alta/edición en `cf-modal` (tenant). `super_admin` solo lee (filtro `company_id`).
+5. Paleta `#1767E2` y blanco. Mapas de sucursal al abrir modal (`cf:modal-open`).
+
+## Backend
+
+- `TenantCompanyScope`: tenant → empresa de sesión; `super_admin` → `company_id` opcional (null = todas en listados CRUD; asistencia/reportes exigen empresa).
+- `PageQuery` / `PagedResult` + `Search*::page`.

@@ -88,7 +88,9 @@ Pantallas:
 - `/attendance` — reloj, estado, botón del siguiente evento, marcas del día e historial de 7 días. Origen `mobile_web`.
 - `/admin/attendance` — métricas del día (presentes, tarde, en comida, incompletos) y la tabla por sucursal y fecha.
 - `/admin/reports` — rango de fechas sobre `daily_attendance_summaries` (`GetCompanyAttendanceRange`).
-- `/admin/branches`, `/admin/schedules`, `/admin/employees` — lista + modal (alta/edición); mapa de geocerca en modal de sucursal.
+- `/{employees,branches,schedules,attendance,reports}` — shells del panel; JSON paginado en `/admin/{seccion}`.
+- `/punch` — checador del empleado.
+- `super_admin` usa las mismas secciones de lectura (+ `/platform` para alta de empresas).
 
 `Users` persiste empresas, planes y usuarios. El portal de `/platform` usa `OpenCompanyAccount` (empresa + administrador) y muestra el tablero de uso. Los planes son `micro`, `small_business` y `enterprise`. No hay carpetas `Auth`, `Companies` ni `Reports`.
 
