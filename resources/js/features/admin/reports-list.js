@@ -1,4 +1,5 @@
 import { fetchJson, readPageParams, renderPager } from './pager.js';
+import { hideListLoader, showListLoader } from '../ui/list-loader.js';
 
 export function mountReportsList() {
     const panel = document.querySelector('[data-reports-list]');
@@ -24,6 +25,7 @@ export function mountReportsList() {
 
             if (company instanceof HTMLSelectElement && company.value === '') {
                 rowsHost.innerHTML = '';
+                hideListLoader(panel);
 
                 if (tableWrap instanceof HTMLElement) {
                     tableWrap.hidden = true;
@@ -38,7 +40,7 @@ export function mountReportsList() {
             }
         }
 
-        const payload = await fetchJson(listUrl, readPageParams(panel));
+        const payload = await fetchJson(listUrl, readPageParams(panel), panel);
         rowsHost.innerHTML = '';
 
         if (payload.filters?.fromDate) {
@@ -95,6 +97,7 @@ export function mountReportsList() {
         load().catch(() => {});
     });
 
+    showListLoader(panel);
     load().catch(() => {
         if (emptyHost instanceof HTMLElement) {
             emptyHost.textContent = 'No se pudo cargar el reporte.';

@@ -1,4 +1,5 @@
 import { fetchJson, readPageParams, renderPager } from './pager.js';
+import { showListLoader } from '../ui/list-loader.js';
 import { openModalById } from '../ui/modal.js';
 
 export function mountSchedulesList() {
@@ -21,7 +22,7 @@ export function mountSchedulesList() {
     }
 
     const load = async () => {
-        const payload = await fetchJson(listUrl, readPageParams(panel));
+        const payload = await fetchJson(listUrl, readPageParams(panel), panel);
         rowsHost.innerHTML = '';
 
         if (emptyHost instanceof HTMLElement) {
@@ -71,6 +72,7 @@ export function mountSchedulesList() {
         });
     });
 
+    showListLoader(panel);
     load().catch(() => {
         if (emptyHost instanceof HTMLElement) {
             emptyHost.textContent = 'No se pudo cargar el listado.';

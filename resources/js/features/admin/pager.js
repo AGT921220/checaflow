@@ -1,3 +1,5 @@
+import { hideListLoader, showListLoader } from '../ui/list-loader.js';
+
 export function readPageParams(root) {
     const params = new URLSearchParams();
     const page = root.dataset.page || '1';
@@ -18,23 +20,33 @@ export function readPageParams(root) {
     return params;
 }
 
-export async function fetchJson(url, params) {
-    const query = params.toString();
-    const target = query === '' ? url : `${url}?${query}`;
-    const response = await fetch(target, {
-        method: 'GET',
-        credentials: 'same-origin',
-        headers: {
-            Accept: 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-    });
-
-    if (! response.ok) {
-        throw new Error('list_fetch_failed');
+export async function fetchJson(url, params, panel = null) {
+    if (panel instanceof HTMLElement) {
+        showListLoader(panel);
     }
 
-    return response.json();
+    try {
+        const query = params.toString();
+        const target = query === '' ? url : `${url}?${query}`;
+        const response = await fetch(target, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+
+        if (! response.ok) {
+            throw new Error('list_fetch_failed');
+        }
+
+        return await response.json();
+    } finally {
+        if (panel instanceof HTMLElement) {
+            hideListLoader(panel);
+        }
+    }
 }
 
 export function renderPager(host, meta, onPage) {

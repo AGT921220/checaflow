@@ -1,4 +1,5 @@
 import { fetchJson, readPageParams, renderPager } from './pager.js';
+import { hideListLoader, showListLoader } from '../ui/list-loader.js';
 
 export function mountAttendanceList() {
     const panel = document.querySelector('[data-attendance-list]');
@@ -24,6 +25,7 @@ export function mountAttendanceList() {
 
             if (company instanceof HTMLSelectElement && company.value === '') {
                 rowsHost.innerHTML = '';
+                hideListLoader(panel);
 
                 if (tableWrap instanceof HTMLElement) {
                     tableWrap.hidden = true;
@@ -38,7 +40,7 @@ export function mountAttendanceList() {
             }
         }
 
-        const payload = await fetchJson(listUrl, readPageParams(panel));
+        const payload = await fetchJson(listUrl, readPageParams(panel), panel);
         rowsHost.innerHTML = '';
         setStat('present', payload.stats?.present);
         setStat('late', payload.stats?.late);
@@ -96,6 +98,7 @@ export function mountAttendanceList() {
         load().catch(() => {});
     });
 
+    showListLoader(panel);
     load().catch(() => {
         if (emptyHost instanceof HTMLElement) {
             emptyHost.textContent = 'No se pudo cargar el tablero.';

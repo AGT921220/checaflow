@@ -27,3 +27,4 @@ Referencia: `resources/views/admin/employees/index.blade.php` + `resources/js/fe
 
 - `TenantCompanyScope`: tenant → empresa de sesión; `super_admin` → `company_id` opcional (null = todas en listados CRUD; asistencia/reportes exigen empresa).
 - `SearchCriteria` (Shared) + `SearchListInput` + `PagedResult`. Whitelists en `config/{employees,branches,schedules,attendance}.php`.
+- Loader de lista: `resources/js/features/ui/list-loader.js` vía `fetchJson(..., panel)` en cada fetch.

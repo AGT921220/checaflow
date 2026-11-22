@@ -1,4 +1,5 @@
 import { fetchJson, readPageParams, renderPager } from './pager.js';
+import { showListLoader } from '../ui/list-loader.js';
 import { openModalById } from '../ui/modal.js';
 
 export function mountEmployeesList(root = document) {
@@ -22,7 +23,7 @@ export function mountEmployeesList(root = document) {
 
     const load = async () => {
         const params = readPageParams(panel);
-        const payload = await fetchJson(listUrl, params);
+        const payload = await fetchJson(listUrl, params, panel);
         renderRows(rowsHost, emptyHost, headerHost, payload.data, canManage, isPlatform);
         renderPager(pagerHost, payload.meta, (page) => {
             panel.dataset.page = String(page);
@@ -47,6 +48,7 @@ export function mountEmployeesList(root = document) {
         });
     }
 
+    showListLoader(panel);
     load().catch(() => {
         if (emptyHost instanceof HTMLElement) {
             emptyHost.hidden = false;
@@ -97,6 +99,11 @@ function renderRows(rowsHost, emptyHost, headerHost, rows, canManage, isPlatform
 
     if (emptyHost instanceof HTMLElement) {
         emptyHost.hidden = rows.length > 0;
+        const label = emptyHost.querySelector('p');
+
+        if (label instanceof HTMLElement) {
+            label.textContent = 'Sin empleados.';
+        }
     }
 
     if (headerHost instanceof HTMLElement) {

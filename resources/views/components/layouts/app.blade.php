@@ -26,7 +26,7 @@
                 class="cf-brand"
             >
                 <img
-                    src="{{ asset('images/checaflow-logo.png') }}"
+                    src="{{ asset('images/checaflow.png') }}"
                     alt="ChecaFlow"
                     class="cf-brand-mark"
                 >

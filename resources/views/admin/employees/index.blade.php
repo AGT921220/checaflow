@@ -45,7 +45,7 @@
 
         <x-ui.panel class="overflow-hidden p-0 sm:p-0">
             <div class="border-b border-[var(--color-line)] px-4 py-3" data-list-empty hidden>
-                <p class="py-10 text-center text-sm text-[var(--color-ink-soft)]">Cargando…</p>
+                <p class="py-10 text-center text-sm text-[var(--color-ink-soft)]">Sin empleados.</p>
             </div>
 
             <div

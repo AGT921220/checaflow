@@ -42,7 +42,7 @@
         </div>
 
         <x-ui.panel class="overflow-hidden p-0 sm:p-0">
-            <div data-list-empty class="px-4 py-10 text-center text-sm text-[var(--color-ink-soft)]">Cargando…</div>
+            <div data-list-empty class="px-4 py-10 text-center text-sm text-[var(--color-ink-soft)]" hidden>Sin sucursales.</div>
             <div class="hidden border-b border-[var(--color-line)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-ink-soft)] sm:grid {{ $isPlatform ? 'sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1.2fr)_7rem_7rem_6.5rem]' : 'sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)_7rem_7rem_6.5rem]' }} sm:gap-3" data-list-header hidden>
                 <span>Sucursal</span>
                 @if ($isPlatform)<span>Empresa</span>@endif

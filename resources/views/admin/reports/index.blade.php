@@ -41,7 +41,7 @@
         </div>
 
         <x-ui.panel class="overflow-hidden p-0 sm:p-0">
-            <div data-list-empty class="px-6 py-14 text-center text-sm text-[var(--color-ink-soft)]">Cargando…</div>
+            <div data-list-empty class="px-6 py-14 text-center text-sm text-[var(--color-ink-soft)]" hidden>Sin datos.</div>
             <div class="overflow-x-auto" data-table-wrap hidden>
                 <table class="cf-table">
                     <thead>

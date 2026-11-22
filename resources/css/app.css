@@ -80,7 +80,48 @@
 
     .cf-panel {
         animation: cf-rise 0.45s ease both;
-        @apply rounded-2xl border border-[var(--color-line)] bg-white p-5 shadow-[0_18px_40px_-28px_rgba(13,27,46,0.35)] sm:p-6;
+        @apply relative rounded-2xl border border-[var(--color-line)] bg-white p-5 shadow-[0_18px_40px_-28px_rgba(13,27,46,0.35)] sm:p-6;
+    }
+
+    .cf-panel.cf-is-loading {
+        min-height: 14rem;
+    }
+
+    .cf-panel.cf-is-loading > :not([data-list-loader]) {
+        opacity: 0.38;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+
+    .cf-list-loader {
+        animation: cf-loader-in 0.22s ease both;
+        @apply absolute inset-0 z-20 flex items-center justify-center;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(247, 250, 255, 0.88) 100%);
+        backdrop-filter: blur(3px);
+    }
+
+    .cf-list-loader[hidden] {
+        display: none !important;
+    }
+
+    .cf-list-loader-card {
+        @apply relative flex flex-col items-center gap-3 px-6 py-5;
+    }
+
+    .cf-list-loader-glow {
+        @apply absolute left-1/2 top-5 h-14 w-14 -translate-x-1/2 rounded-full bg-[var(--color-sea-soft)];
+        animation: cf-loader-glow 1.4s ease-in-out infinite;
+    }
+
+    .cf-list-loader-ring {
+        @apply relative z-[1] h-11 w-11 rounded-full border-[3px] border-[var(--color-sea-soft)];
+        border-top-color: var(--color-accent);
+        animation: cf-spin 0.75s linear infinite;
+    }
+
+    .cf-list-loader-label {
+        font-family: var(--font-display);
+        @apply relative z-[1] text-sm font-semibold tracking-wide text-[var(--color-accent-deep)];
     }
 
     .cf-panel-tight {
@@ -284,5 +325,34 @@
 
     50% {
         box-shadow: 0 18px 36px -10px rgba(23, 103, 226, 0.55);
+    }
+}
+
+@keyframes cf-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes cf-loader-glow {
+    0%,
+    100% {
+        transform: translateX(-50%) scale(0.85);
+        opacity: 0.55;
+    }
+
+    50% {
+        transform: translateX(-50%) scale(1.2);
+        opacity: 1;
+    }
+}
+
+@keyframes cf-loader-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
     }
 }
